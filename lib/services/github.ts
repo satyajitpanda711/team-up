@@ -1,102 +1,257 @@
-export function parseGitHubRepo(repoUrl: string) {
-  const match = repoUrl.replace(/\/$/, "").match(/github\.com\/([^\/]+)\/([^\/]+)/);
-  if (!match) throw new Error("Invalid GitHub repo URL");
+/**
+ * 🚀 GitHub Service — Production Grade
+ */
 
-  return {
-    owner: match[1],
-    repoName: match[2].replace(".git", ""),
-    fullName: `${match[1]}/${match[2].replace(".git", "")}`,
-  };
+const GITHUB_BASE = "https://api.github.com";
+
+/* ======================
+   TYPES
+====================== */
+
+export interface ParsedRepo {
+  owner: string;
+  repoName: string;
+  fullName: string;
 }
 
-export async function fetchRepoMeta(owner: string, repo: string, token: string) {
-  const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/vnd.github+json",
-    },
-  });
-
-  if (!res.ok) throw new Error("Repo not accessible");
-
-  return res.json();
+export interface RepoMeta {
+  id: number;
+  name: string;
+  full_name: string;
+  html_url: string;
+  private: boolean;
+  default_branch: string;
+  owner: { login: string };
 }
 
-export async function fetchCommits(owner: string, repo: string, token: string) {
-  const res = await fetch(
-    `https://api.github.com/repos/${owner}/${repo}/commits?per_page=20`,
-    {
-      headers: { Authorization: `Bearer ${token}` },
+/* ======================
+   CORE FETCH (UPGRADED)
+====================== */
+
+async function sleep(ms: number) {
+  return new Promise((res) => setTimeout(res, ms));
+}
+
+async function ghFetch(
+  url: string,
+  token: string,
+  options: RequestInit = {},
+  retry = 3
+): Promise<Response> {
+  try {
+    const res = await fetch(url, {
+      ...options,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        ...options.headers,
+      },
+    });
+
+    /* 🔥 RATE LIMIT HANDLING */
+    if (res.status === 403 && res.headers.get("x-ratelimit-remaining") === "0") {
+      const reset = Number(res.headers.get("x-ratelimit-reset")) * 1000;
+      const wait = reset - Date.now();
+
+      console.warn(`⏳ Rate limited. Waiting ${wait}ms`);
+      if (wait > 0) await sleep(wait);
+      return ghFetch(url, token, options, retry);
     }
-  );
 
-  if (!res.ok) throw new Error("Failed to fetch commits");
-  return res.json();
-}
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
 
-export async function fetchPullRequests(owner: string, repo: string, token: string) {
-  const res = await fetch(
-    `https://api.github.com/repos/${owner}/${repo}/pulls?state=all&per_page=20`,
-    {
-      headers: { Authorization: `Bearer ${token}` },
+      /* 🔁 RETRY LOGIC */
+      if (retry > 0 && res.status >= 500) {
+        await sleep(500 * (4 - retry));
+        return ghFetch(url, token, options, retry - 1);
+      }
+
+      throw new Error(
+        `GitHub API error ${res.status} ${res.statusText}\n${url}\n${body}`
+      );
     }
-  );
 
-  if (!res.ok) throw new Error("Failed to fetch PRs");
-  return res.json();
-}
-
-export async function fetchIssues(owner: string, repo: string, token: string) {
-  const res = await fetch(
-    `https://api.github.com/repos/${owner}/${repo}/issues?state=all&per_page=20`,
-    {
-      headers: { Authorization: `Bearer ${token}` },
+    return res;
+  } catch (err) {
+    if (retry > 0) {
+      await sleep(500);
+      return ghFetch(url, token, options, retry - 1);
     }
-  );
-
-  if (!res.ok) throw new Error("Failed to fetch issues");
-  return res.json();
+    throw err;
+  }
 }
 
-export async function fetchRepoTree(
+/* ======================
+   PAGINATION HELPER
+====================== */
+
+async function ghPaginate<T>(
+  url: string,
+  token: string,
+  limit = 1000
+): Promise<T[]> {
+  let results: T[] = [];
+  let page = 1;
+
+  while (true) {
+    const res = await ghFetch(`${url}&page=${page}`, token);
+    const data = (await res.json()) as T[];
+
+    if (!data.length) break;
+
+    results = results.concat(data);
+
+    if (data.length < 100 || results.length >= limit) break;
+
+    page++;
+  }
+
+  return results;
+}
+
+/* ======================
+   PARSER
+====================== */
+
+export function parseGitHubRepo(repoUrl: string): ParsedRepo {
+  const cleaned = repoUrl.replace(/\/$/, "").replace(/\.git$/, "");
+  const match = cleaned.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+
+  if (!match) throw new Error(`Invalid GitHub repo URL: "${repoUrl}"`);
+
+  const owner = match[1];
+  const repoName = match[2];
+
+  return { owner, repoName, fullName: `${owner}/${repoName}` };
+}
+
+/* ======================
+   META
+====================== */
+
+export async function fetchRepoMeta(
   owner: string,
   repo: string,
+  token: string
+): Promise<RepoMeta> {
+  const res = await ghFetch(`${GITHUB_BASE}/repos/${owner}/${repo}`, token);
+  return res.json();
+}
+
+export async function fetchRepoMetaById(
+  repoId: number,
+  token: string
+): Promise<RepoMeta> {
+  const res = await ghFetch(`${GITHUB_BASE}/repositories/${repoId}`, token);
+  return res.json();
+}
+
+/* ======================
+   TREE
+====================== */
+
+export async function fetchRepoTree(
+  repoId: number,
   branch: string,
   token: string
 ) {
-  const res = await fetch(
-    `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
+  const res = await ghFetch(
+    `${GITHUB_BASE}/repositories/${repoId}/git/trees/${branch}?recursive=1`,
+    token
   );
 
-  console.log(`Fetching repo tree from ${owner}/${repo} at branch ${branch}`);
-  //tree
-  console.log(res);
-
-  if (!res.ok) throw new Error("Failed to fetch tree");
   return res.json();
 }
 
+/* ======================
+   README
+====================== */
+
 export async function fetchReadme(
-  owner: string,
-  repo: string,
+  repoId: number,
   token: string
 ): Promise<string | null> {
-  const res = await fetch(
-    `https://api.github.com/repos/${owner}/${repo}/readme`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github.v3.raw",
-      },
-    }
-  );
-
-  if (!res.ok) return null;
-  return res.text();
+  try {
+    const res = await ghFetch(
+      `${GITHUB_BASE}/repositories/${repoId}/readme`,
+      token,
+      { headers: { Accept: "application/vnd.github.v3.raw" } }
+    );
+    return res.text();
+  } catch {
+    return null;
+  }
 }
 
+/* ======================
+   COMMITS (PAGINATED + SINCE)
+====================== */
+
+export async function fetchCommits(
+  repoId: number,
+  token: string,
+  since?: Date
+) {
+  const params = new URLSearchParams({
+    per_page: "100",
+  });
+
+  if (since) params.set("since", since.toISOString());
+
+  return ghPaginate(
+    `${GITHUB_BASE}/repositories/${repoId}/commits?${params}`,
+    token
+  );
+}
+
+/* ======================
+   PRs (SMART FILTER)
+====================== */
+
+export async function fetchPullRequests(
+  repoId: number,
+  token: string,
+  since?: Date
+) {
+  const params = new URLSearchParams({
+    state: "all",
+    sort: "updated",
+    direction: "desc",
+    per_page: "100",
+  });
+
+  const prs = await ghPaginate<any>(
+    `${GITHUB_BASE}/repositories/${repoId}/pulls?${params}`,
+    token
+  );
+
+  if (!since) return prs;
+
+  return prs.filter((pr) => new Date(pr.updated_at) > since);
+}
+
+/* ======================
+   ISSUES
+====================== */
+
+export async function fetchIssues(
+  repoId: number,
+  token: string,
+  since?: Date
+) {
+  const params = new URLSearchParams({
+    state: "all",
+    sort: "updated",
+    direction: "desc",
+    per_page: "100",
+  });
+
+  if (since) params.set("since", since.toISOString());
+
+  return ghPaginate<any>(
+    `${GITHUB_BASE}/repositories/${repoId}/issues?${params}`,
+    token
+  );
+}

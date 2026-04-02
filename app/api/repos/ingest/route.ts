@@ -21,10 +21,60 @@ import {
     fetchIssues,
 } from "@/lib/services/github";
 
+/* ======================
+   TYPES
+====================== */
+
 interface IngestRequestBody {
     projectId: string;
     repoUrl: string;
+    incremental?: boolean;
 }
+
+interface GitHubTreeNode {
+    path: string;
+    type: "tree" | "blob";
+    size?: number;
+    sha: string;
+}
+
+interface GitHubTreeResponse {
+    tree: GitHubTreeNode[];
+}
+
+interface GitHubCommit {
+    sha: string;
+    commit: {
+        message: string;
+        author?: {
+            name: string;
+            date: string;
+        };
+    };
+}
+
+interface GitHubPR {
+    number: number;
+    title: string;
+    body: string | null;
+    state: string;
+    merged_at: string | null;
+    updated_at: string;
+}
+
+interface GitHubIssue {
+    number: number;
+    title: string;
+    body: string | null;
+    state: string;
+    updated_at: string;
+    labels: { name: string }[];
+    pull_request?: object;
+}
+
+/* ======================
+   API
+====================== */
 
 export async function POST(req: NextRequest) {
     try {
@@ -32,11 +82,12 @@ export async function POST(req: NextRequest) {
            AUTH
         ====================== */
         const session = await getServerSession(authOptions);
+
         if (!session?.user?.email) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { projectId, repoUrl } =
+        const { projectId, repoUrl, incremental = true } =
             (await req.json()) as IngestRequestBody;
 
         if (!projectId || !repoUrl) {
@@ -60,7 +111,7 @@ export async function POST(req: NextRequest) {
         }
 
         /* ======================
-           PARSE & FETCH META
+           PARSE + META
         ====================== */
         const { owner, repoName, fullName } = parseGitHubRepo(repoUrl);
 
@@ -70,76 +121,99 @@ export async function POST(req: NextRequest) {
             user.githubAccessToken
         );
 
+        const repoId: number = repoMeta.id;
+
         /* ======================
-           UPSERT REPOSITORY
+           EXISTING REPO
+        ====================== */
+        const existingRepo = await Repository.findOne({
+            githubId: repoId,
+            projectId,
+        });
+
+        const lastSyncedAt: Date | null =
+            incremental && existingRepo?.lastSyncedAt
+                ? existingRepo.lastSyncedAt
+                : null;
+
+        const syncStartedAt = new Date();
+
+        /* ======================
+           UPSERT REPO
         ====================== */
         const repository = await Repository.findOneAndUpdate(
-            { githubId: repoMeta.id, projectId },
+            { githubId: repoId, projectId },
             {
                 projectId,
-                githubId: repoMeta.id,
+                githubId: repoId,
                 owner,
                 name: repoName,
                 fullName,
                 url: repoMeta.html_url,
                 isPrivate: repoMeta.private,
                 defaultBranch: repoMeta.default_branch,
-                
-                lastSyncedAt: new Date(),
+                lastSyncedAt: syncStartedAt,
             },
             { upsert: true, new: true }
         );
 
         /* ======================
-           REPO TREE (PATHS ONLY)
+           TREE
         ====================== */
-        const tree = await fetchRepoTree(
-            owner,
-            repoName,
+        const tree = (await fetchRepoTree(
+            repoId,
             repoMeta.default_branch,
             user.githubAccessToken
-        );
+        )) as GitHubTreeResponse;
+
+        const remotePaths = new Set<string>();
 
         for (const node of tree.tree) {
             if (
                 node.path.startsWith(".git") ||
                 node.path.includes("node_modules")
-            ) continue;
+            )
+                continue;
+
+            remotePaths.add(node.path);
 
             await RepoFile.findOneAndUpdate(
-                {
-                    repository: repository._id,
-                    path: node.path,
-                },
+                { repository: repository._id, path: node.path },
                 {
                     repository: repository._id,
                     path: node.path,
                     type: node.type === "tree" ? "dir" : "file",
                     size: node.size ?? 0,
+                    deletedAt: null,
                 },
                 { upsert: true }
             );
         }
-        console.log
+
+        await RepoFile.updateMany(
+            {
+                repository: repository._id,
+                path: { $nin: Array.from(remotePaths) },
+                deletedAt: null,
+            },
+            { $set: { deletedAt: syncStartedAt } }
+        );
+
         await Repository.findByIdAndUpdate(repository._id, {
-            tree: tree,
+            treeCount: remotePaths.size,
         });
 
         /* ======================
-           README (CONTENT ONLY)
+           README
         ====================== */
         const readmeContent = await fetchReadme(
-            owner,
-            repoName,
+            repoId,
             user.githubAccessToken
         );
 
         if (readmeContent) {
             await RepoFile.findOneAndUpdate(
-                {
-                    repository: repository._id,
-                    path: "README.md",
-                },
+                { repository: repository._id, path: "README.md" },
                 {
                     repository: repository._id,
                     path: "README.md",
@@ -147,6 +221,7 @@ export async function POST(req: NextRequest) {
                     content: readmeContent,
                     language: "markdown",
                     size: readmeContent.length,
+                    deletedAt: null,
                 },
                 { upsert: true }
             );
@@ -155,14 +230,16 @@ export async function POST(req: NextRequest) {
         /* ======================
            COMMITS
         ====================== */
-        const commits = await fetchCommits(
-            owner,
-            repoName,
-            user.githubAccessToken
-        );
+        const commits = (await fetchCommits(
+            repoId,
+            user.githubAccessToken,
+            lastSyncedAt ?? undefined
+        )) as GitHubCommit[];
+
+        let newCommits = 0;
 
         for (const c of commits) {
-            await Commit.findOneAndUpdate(
+            const existing = await Commit.findOneAndUpdate(
                 { repository: repository._id, sha: c.sha },
                 {
                     repository: repository._id,
@@ -171,21 +248,26 @@ export async function POST(req: NextRequest) {
                     author: c.commit.author?.name,
                     date: c.commit.author?.date,
                 },
-                { upsert: true }
+                { upsert: true, new: false }
             );
+
+            if (!existing) newCommits++;
         }
 
         /* ======================
-           PULL REQUESTS
+           PRs
         ====================== */
-        const prs = await fetchPullRequests(
-            owner,
-            repoName,
-            user.githubAccessToken
-        );
+        const prs = (await fetchPullRequests(
+            repoId,
+            user.githubAccessToken,
+            lastSyncedAt ?? undefined
+        )) as GitHubPR[];
+
+        let newPRs = 0;
+        let updatedPRs = 0;
 
         for (const pr of prs) {
-            await PullRequest.findOneAndUpdate(
+            const existing = await PullRequest.findOneAndUpdate(
                 { repository: repository._id, number: pr.number },
                 {
                     repository: repository._id,
@@ -194,24 +276,31 @@ export async function POST(req: NextRequest) {
                     body: pr.body,
                     state: pr.state,
                     merged: Boolean(pr.merged_at),
+                    updatedAt: pr.updated_at,
                 },
-                { upsert: true }
+                { upsert: true, new: false }
             );
+
+            if (!existing) newPRs++;
+            else updatedPRs++;
         }
 
         /* ======================
-           ISSUES (FILTER PRs)
+           ISSUES
         ====================== */
-        const issues = await fetchIssues(
-            owner,
-            repoName,
-            user.githubAccessToken
-        );
+        const issues = (await fetchIssues(
+            repoId,
+            user.githubAccessToken,
+            lastSyncedAt ?? undefined
+        )) as GitHubIssue[];
+
+        let newIssues = 0;
+        let updatedIssues = 0;
 
         for (const issue of issues) {
             if (issue.pull_request) continue;
 
-            await Issue.findOneAndUpdate(
+            const existing = await Issue.findOneAndUpdate(
                 { repository: repository._id, number: issue.number },
                 {
                     repository: repository._id,
@@ -219,33 +308,52 @@ export async function POST(req: NextRequest) {
                     title: issue.title,
                     body: issue.body,
                     state: issue.state,
-                    labels: issue.labels.map((l: any) => l.name),
+                    labels: issue.labels.map((l) => l.name),
+                    updatedAt: issue.updated_at,
                 },
-                { upsert: true }
+                { upsert: true, new: false }
             );
+
+            if (!existing) newIssues++;
+            else updatedIssues++;
         }
 
         /* ======================
-           DONE
+           RESPONSE
         ====================== */
+        const isFirstSync = !lastSyncedAt;
+
+        return NextResponse.json({
+            success: true,
+            repositoryId: repository._id,
+            syncType: isFirstSync ? "full" : "incremental",
+            syncedSince: lastSyncedAt ?? null,
+            treeNodes: remotePaths.size,
+            commits: {
+                fetched: commits.length,
+                new: newCommits,
+            },
+            pullRequests: {
+                fetched: prs.length,
+                new: newPRs,
+                updated: updatedPRs,
+            },
+            issues: {
+                fetched: issues.length,
+                new: newIssues,
+                updated: updatedIssues,
+            },
+            readme: Boolean(readmeContent),
+            syncedAt: syncStartedAt,
+        });
+    } catch (error) {
+        console.error("🔥 Repo ingest error:", error);
+
         return NextResponse.json(
             {
-                success: true,
-                repositoryId: repository._id,
-                treeNodes: tree.tree.length,
-                commits: commits.length,
-                prs: prs.length,
-                issues: issues.length,
-                readme: Boolean(readmeContent),
-                tree: tree,
-                treeFetchedAt: new Date(),
+                error: "Repository ingestion failed",
+                details: (error as Error).message,
             },
-            { status: 200 }
-        ); 
-    } catch (error) {
-        console.error("Repo ingest error:", error);
-        return NextResponse.json(
-            { error: "Repository ingestion failed" },
             { status: 500 }
         );
     }
