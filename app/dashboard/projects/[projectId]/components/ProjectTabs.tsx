@@ -1,3 +1,5 @@
+"use client";
+
 import {
   FolderTree,
   GitCommit,
@@ -18,68 +20,49 @@ import ChatTab from "./tabs/ChatTab";
 export default function ProjectTabs({ projectId }: { projectId: string }) {
   return (
     <Tabs defaultValue="repo" className="h-full flex flex-col">
-      <TabsList
-        className="
-          sticky top-0 z-10
-          grid grid-cols-6
-          w-full
-          border-b
-          bg-background
-          rounded-none
-        "
-      >
-        <TabsTrigger value="repo" className="flex gap-2 items-center">
-          <FolderTree className="w-4 h-4" />
-          Repo
-        </TabsTrigger>
 
-        <TabsTrigger value="commits" className="flex gap-2 items-center">
-          <GitCommit className="w-4 h-4" />
-          Commits
-        </TabsTrigger>
+      <TabsList className="grid grid-cols-6 border-b border-white/10 bg-transparent">
 
-        <TabsTrigger value="prs" className="flex gap-2 items-center">
-          <GitPullRequest className="w-4 h-4" />
-          PRs
-        </TabsTrigger>
-
-        <TabsTrigger value="issues" className="flex gap-2 items-center">
-          <AlertCircle className="w-4 h-4" />
-          Issues
-        </TabsTrigger>
-
-        <TabsTrigger value="questions" className="flex gap-2 items-center">
-          <MessageSquare className="w-4 h-4" />
-          Questions
-        </TabsTrigger>
-
-        <TabsTrigger value="chat" className="flex gap-2 items-center">
-          <MessageSquare className="w-4 h-4" />
-          Chat
-        </TabsTrigger>
+        {[
+          ["repo", "Repo", FolderTree],
+          ["commits", "Commits", GitCommit],
+          ["prs", "PRs", GitPullRequest],
+          ["issues", "Issues", AlertCircle],
+          ["questions", "Questions", MessageSquare],
+          ["chat", "Chat", MessageSquare],
+        ].map(([val, label, Icon]: any) => (
+          <TabsTrigger
+            key={val}
+            value={val}
+            className="flex gap-2 items-center text-white/40 data-[state=active]:text-[#00ffa3] data-[state=active]:border-b data-[state=active]:border-[#00ffa3]"
+          >
+            <Icon className="w-4 h-4" />
+            {label}
+          </TabsTrigger>
+        ))}
       </TabsList>
-      <TabsContent value="repo" className="mt-0 flex-1 overflow-y-autoai">
+
+      <TabsContent value="repo" className="flex-1 overflow-auto">
         <FilesTab projectId={projectId} />
       </TabsContent>
 
-      <TabsContent value="commits" className="mt-0 flex-1 overflow-y-auto">
+      <TabsContent value="commits" className="flex-1 overflow-auto">
         <CommitsTab projectId={projectId} />
       </TabsContent>
 
-      <TabsContent value="prs" className="mt-0 flex-1 overflow-y-auto">
+      <TabsContent value="prs" className="flex-1 overflow-auto">
         <PullRequestsTab projectId={projectId} />
       </TabsContent>
 
-      <TabsContent value="issues" className="mt-0 flex-1 overflow-y-auto">
+      <TabsContent value="issues" className="flex-1 overflow-auto">
         <IssuesTab projectId={projectId} />
       </TabsContent>
 
-      <TabsContent value="questions" className="mt-0 flex-1 overflow-y-auto">
+      <TabsContent value="questions" className="flex-1 overflow-auto">
         <QuestionsTab projectId={projectId} />
       </TabsContent>
 
-      {/* Chat usually wants full height */}
-      <TabsContent value="chat" className="mt-0 flex-1 overflow-hidden">
+      <TabsContent value="chat" className="flex-1 overflow-hidden">
         <ChatTab projectId={projectId} />
       </TabsContent>
 

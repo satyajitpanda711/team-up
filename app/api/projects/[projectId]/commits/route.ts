@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth/next";
 import Commit from "@/models/Commit";
 import User from "@/models/User";
+import Repository from "@/models/Repository";
 
 export async function GET(
   _request: NextRequest,
@@ -25,7 +26,12 @@ export async function GET(
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  const commits = await Commit.find({ projectId: projectId })
+  const repository = await Repository.findOne({ project: projectId }).lean();
+  if (!repository) {
+    return NextResponse.json({ error: "Repository not found" }, { status: 404 });
+  }
+
+  const commits = await Commit.find({ repository: repository._id })
     .sort({ date: -1 })
     .limit(20)
     .lean();

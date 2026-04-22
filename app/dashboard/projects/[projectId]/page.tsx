@@ -4,12 +4,13 @@ import { redirect } from "next/navigation";
 import { connectDB } from "@/lib/db";
 import { Types } from "mongoose";
 import Image from "next/image";
+
 import InviteTeammateButton from "./components/InviteTeammateButton";
+import ProjectTabs from "./components/ProjectTabs";
 
 import User from "@/models/User";
 import Project from "@/models/Project";
 
-import ProjectTabs from "./components/ProjectTabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -29,6 +30,7 @@ export default async function ProjectPage({
 
   await connectDB();
   const project = await Project.findById(projectId).lean();
+
   if (!project) {
     return <State title="Project Not Found" />;
   }
@@ -36,30 +38,24 @@ export default async function ProjectPage({
   const contributors = await getContributors(projectId);
 
   return (
-    <main className="min-h-[calc(100vh-5.5rem)] bg-background">
-      <div className="border-b bg-background/80 backdrop-blur">
-        <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
+    <main className="min-h-screen bg-[#05050a] text-white">
+
+      {/* HEADER */}
+      <div className="border-b border-white/10 bg-[#05050a]/80 backdrop-blur-xl">
+        <div className="mx-auto max-w-7xl px-6 py-4 flex justify-between items-center">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">
-              {project.name}
-            </h1>
-            <p className="text-xs text-muted-foreground">
-              Project workspace
-            </p>
+            <h1 className="text-lg font-semibold">{project.name}</h1>
+            <p className="text-xs text-white/40">Project workspace</p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex gap-3">
             <Button size="sm" variant="secondary" disabled>
               Ask AI
             </Button>
 
             {project.githubRepoUrl && (
               <Button size="sm" asChild>
-                <a
-                  href={project.githubRepoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <a href={project.githubRepoUrl} target="_blank">
                   GitHub
                 </a>
               </Button>
@@ -67,23 +63,25 @@ export default async function ProjectPage({
           </div>
         </div>
       </div>
-      <div className="mx-auto max-w-7xl px-6 py-8 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
 
-        {/* ======================
-            MAIN WORKSPACE
-        ====================== */}
+      {/* BODY */}
+      <div className="mx-auto max-w-7xl px-6 py-8 grid lg:grid-cols-[1fr_300px] gap-8">
+
+        {/* MAIN */}
         <section className="space-y-6">
 
           {/* AI PANEL */}
-          <Card className="relative overflow-hidden">
-            <div className="absolute inset-0 bg-linear-to-r from-indigo-500/10 to-fuchsia-500/10" />
-            <div className="relative p-5 flex items-center justify-between">
+          <Card className="relative border border-white/10 bg-white/[0.02] hover:bg-white/[0.04] transition overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%,rgba(0,255,163,0.08),transparent_70%)]" />
+            
+            <div className="relative p-5 flex justify-between items-center">
               <div>
-                <p className="font-medium">Ask your repository</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="font-medium text-white">Ask your repository</p>
+                <p className="text-sm text-white/40">
                   Understand code, commits, and architecture instantly
                 </p>
               </div>
+
               <Button size="sm" disabled>
                 Coming soon
               </Button>
@@ -91,54 +89,52 @@ export default async function ProjectPage({
           </Card>
 
           {/* TABS */}
-          <Card className="p-0 overflow-hidden flex flex-col h-[calc(100vh-14rem)]">
+          <Card className="p-0 overflow-hidden border border-white/10 bg-white/[0.02] h-[calc(100vh-14rem)]">
             <ProjectTabs projectId={projectId} />
           </Card>
 
         </section>
 
-        {/* ======================
-            CONTEXT SIDEBAR
-        ====================== */}
+        {/* SIDEBAR */}
         <aside className="space-y-6">
 
-          {/* PROJECT META */}
-          <Card className="p-5 space-y-2">
-            <h2 className="text-sm font-medium">Project Metadata</h2>
-            <div className="text-xs text-muted-foreground">
-              <p>ID</p>
-              <code className="block mt-1 bg-muted px-2 py-1 rounded break-all">
-                {projectId}
-              </code>
-            </div>
+          {/* META */}
+          <Card className="p-5 border border-white/10 bg-white/[0.015]">
+            <h2 className="text-xs text-white/60 uppercase tracking-wider">
+              Project Metadata
+            </h2>
+
+            <code className="block mt-3 text-xs bg-white/[0.03] px-2 py-1 rounded break-all">
+              {projectId}
+            </code>
           </Card>
 
-          {/* CONTRIBUTORS */}
-          {/* TEAMMATES */}
-          <Card className="p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-medium">Collaborators</h2>
+          {/* TEAM */}
+          <Card className="p-5 border border-white/10 bg-white/[0.015]">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xs text-white/60 uppercase tracking-wider">
+                Collaborators
+              </h2>
               <InviteTeammateButton />
             </div>
 
             {contributors.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No teammates yet
-              </p>
+              <p className="text-sm text-white/40">No teammates yet</p>
             ) : (
-              <ul className="space-y-3">
+              <ul className="space-y-2">
                 {contributors.map((c: any) => (
-                  <li key={c.id} className="flex items-center gap-3">
+                  <li
+                    key={c.id}
+                    className="flex items-center gap-3 p-2 rounded-md hover:bg-white/[0.03] transition"
+                  >
                     <Image
                       src={c.image}
                       alt={c.name}
                       width={28}
                       height={28}
-                      className="rounded-full border"
+                      className="rounded-full border border-white/10"
                     />
-                    <div className="flex flex-col">
-                      <span className="text-sm">{c.name}</span>
-                    </div>
+                    <span className="text-sm">{c.name}</span>
                   </li>
                 ))}
               </ul>
@@ -155,9 +151,7 @@ function State({ title }: { title: string }) {
   return (
     <div className="p-12">
       <h1 className="text-2xl font-semibold">{title}</h1>
-      <p className="text-muted-foreground mt-2">
-        Please check the URL and try again.
-      </p>
+      <p className="text-white/40 mt-2">Check URL and try again</p>
     </div>
   );
 }
@@ -178,7 +172,7 @@ const getContributors = async (projectId: string) => {
 
       return {
         id: user.githubId ?? user._id.toString(),
-        name: user.name ?? "Unknown user",
+        name: user.name ?? "Unknown",
         image: user.image ?? "/avatar-placeholder.png",
       };
     })

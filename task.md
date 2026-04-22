@@ -1,4 +1,3 @@
-1. Fix why questions not added
-2. Add loading state to chat messages
-3. Change "Teammates" to "Collaborators" in project page
-4. Add Ask Repo Implementation
+1. chat got removed
+2. change the projectid to repository id in commit, pr, issue
+3. add the ai assistant to the navbar 
