@@ -6,6 +6,7 @@ import {
   GitPullRequest,
   AlertCircle,
   MessageSquare,
+  Bot,
 } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,13 +17,13 @@ import IssuesTab from "./tabs/IssuesTab";
 import PullRequestsTab from "./tabs/PullRequestsTab";
 import QuestionsTab from "./tabs/QuestionsTab";
 import ChatTab from "./tabs/ChatTab";
+import AskRepo from "./tabs/AskRepo";
 
 export default function ProjectTabs({ projectId }: { projectId: string }) {
   return (
-    <Tabs defaultValue="repo" className="h-full flex flex-col">
+    <Tabs defaultValue="repo" className="h-full grid grid-rows-[auto_1fr]  overflow-hidden">
 
-      <TabsList className="grid grid-cols-6 border-b border-white/10 bg-transparent">
-
+      <TabsList className="grid grid-cols-7 rounded-none border-b w-full">
         {[
           ["repo", "Repo", FolderTree],
           ["commits", "Commits", GitCommit],
@@ -30,11 +31,12 @@ export default function ProjectTabs({ projectId }: { projectId: string }) {
           ["issues", "Issues", AlertCircle],
           ["questions", "Questions", MessageSquare],
           ["chat", "Chat", MessageSquare],
+          ["ai-assistant", "AskRepo", Bot],
         ].map(([val, label, Icon]: any) => (
           <TabsTrigger
             key={val}
             value={val}
-            className="flex gap-2 items-center text-white/40 data-[state=active]:text-[#00ffa3] data-[state=active]:border-b data-[state=active]:border-[#00ffa3]"
+            className="flex gap-2 items-center"
           >
             <Icon className="w-4 h-4" />
             {label}
@@ -42,29 +44,38 @@ export default function ProjectTabs({ projectId }: { projectId: string }) {
         ))}
       </TabsList>
 
-      <TabsContent value="repo" className="flex-1 overflow-auto">
-        <FilesTab projectId={projectId} />
-      </TabsContent>
+      {/* Shared content area — fills exactly the remaining grid row */}
+      <div className="relative overflow-hidden">
 
-      <TabsContent value="commits" className="flex-1 overflow-auto">
-        <CommitsTab projectId={projectId} />
-      </TabsContent>
+        <TabsContent value="repo" className="absolute inset-0 overflow-auto m-0">
+          <FilesTab projectId={projectId} />
+        </TabsContent>
 
-      <TabsContent value="prs" className="flex-1 overflow-auto">
-        <PullRequestsTab projectId={projectId} />
-      </TabsContent>
+        <TabsContent value="commits" className="absolute inset-0 overflow-auto m-0">
+          <CommitsTab projectId={projectId} />
+        </TabsContent>
 
-      <TabsContent value="issues" className="flex-1 overflow-auto">
-        <IssuesTab projectId={projectId} />
-      </TabsContent>
+        <TabsContent value="prs" className="absolute inset-0 overflow-auto m-0">
+          <PullRequestsTab projectId={projectId} />
+        </TabsContent>
 
-      <TabsContent value="questions" className="flex-1 overflow-auto">
-        <QuestionsTab projectId={projectId} />
-      </TabsContent>
+        <TabsContent value="issues" className="absolute inset-0 overflow-auto m-0">
+          <IssuesTab projectId={projectId} />
+        </TabsContent>
 
-      <TabsContent value="chat" className="flex-1 overflow-hidden">
-        <ChatTab projectId={projectId} />
-      </TabsContent>
+        <TabsContent value="questions" className="absolute inset-0 overflow-auto m-0">
+          <QuestionsTab projectId={projectId} />
+        </TabsContent>
+
+        <TabsContent value="chat" className="absolute inset-0 overflow-hidden m-0">
+          <ChatTab projectId={projectId} />
+        </TabsContent>
+
+        <TabsContent value="ai-assistant" className="absolute inset-0 overflow-hidden m-0">
+          <AskRepo projectId={projectId} />
+        </TabsContent>  
+
+      </div>
 
     </Tabs>
   );

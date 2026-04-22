@@ -12,75 +12,84 @@ type Message = {
 
 type ChatStore = {
   socket: Socket | null
+  connectedProjectId: string | null
   messages: Message[]
   isLoading: boolean
   fetchMessages: (projectId: string) => Promise<void>
   connect: (projectId: string, userEmail: string) => void
   disconnect: () => void
   sendMessage: (content: string) => void
-  addMessage: (msg: Message) => void
 }
 
 export const useChatStore = create<ChatStore>((set, get) => ({
   socket: null,
+  connectedProjectId: null,
   messages: [],
   isLoading: false,
 
   connect: (projectId, userEmail) => {
-    // already connected do not create a new socket
-    if (get().socket) return
+    const { socket, connectedProjectId } = get()
 
-    // create a new socket connection with auth
-    const socket = io({
+    // Already connected to this exact project — skip
+    if (socket && connectedProjectId === projectId) return
+
+    // Different project (or re-mount) — disconnect old socket first
+    if (socket) {
+      socket.disconnect()
+      set({ socket: null, connectedProjectId: null })
+    }
+
+    const newSocket = io({
       path: "/api/socket",
       auth: { projectId, userEmail },
-      transports: ["websocket", "polling"], // force WebSocket and fallback to polling
+      transports: ["websocket", "polling"],
     })
 
-    socket.on("connect", () => {
-      console.log("Socket Connected!", socket.id)
+    newSocket.on("connect", () => {
+      console.log("✅ Socket connected:", newSocket.id)
     })
 
-    socket.on("connect_error", (err) => {
-      console.error("Socket Connection Error:", err)
+    newSocket.on("connect_error", (err) => {
+      console.error("❌ Socket connection error:", err.message)
     })
 
-    socket.on("message:new", (msg) => {
-      set((state) => ({
-        messages: [...state.messages, msg],
-      }))
+    newSocket.on("message:new", (msg: Message) => {
+      set((state) => ({ messages: [...state.messages, msg] }))
     })
 
-    set({ socket })
+    set({ socket: newSocket, connectedProjectId: projectId })
   },
 
   disconnect: () => {
     get().socket?.disconnect()
-    set({ socket: null, messages: [] })
+    set({ socket: null, connectedProjectId: null, messages: [] })
   },
 
   sendMessage: (content) => {
-    get().socket?.emit("message:send", content)
+    const { socket } = get()
+    if (!socket?.connected) {
+      console.warn("⚠️ Socket not connected — cannot send message")
+      return
+    }
+    socket.emit("message:send", content)
   },
-
-  addMessage: (msg) =>
-    set((state) => ({
-      messages: [...state.messages, msg],
-    })),
 
   fetchMessages: async (projectId) => {
     set({ isLoading: true })
     try {
+      // Hits the Express route in server.ts: GET /api/messages/:projectId
       const res = await fetch(`/api/messages/${projectId}`)
-      if (!res.ok) throw new Error("Failed to fetch messages")
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(`HTTP ${res.status}: ${text}`)
+      }
       const data: Message[] = await res.json()
       set({ messages: data })
-    }
-    catch (err) {
-      console.error("Fetch Messages Error:", err)
-    }
-    finally {
+    } catch (err) {
+      console.error("❌ Fetch messages error:", err)
+    } finally {
       set({ isLoading: false })
     }
-  }
+  },
 }))
+

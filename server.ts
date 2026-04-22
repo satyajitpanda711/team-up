@@ -1,18 +1,19 @@
+// socket server
+
 import express from "express";
 import { createServer } from "http";
 import next from "next";
 import { Server } from "socket.io";
 import mongoose from "mongoose";
-
-// 👇 CHECK THESE PATHS! 
-// If your models are in a "models" folder at the root, keep these.
-// If they are in "src/models" or "lib/models", update the path accordingly.
 import Message from "./models/Message"; 
 import User from "./models/User";       
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
 const port = 3000;
+
+
+
 
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
@@ -31,10 +32,8 @@ app.prepare().then(async () => {
     }
   }
 
-  // 2. Middleware (Optional but good for debugging)
-  expressApp.use(express.json());
+  // 2. Request logger
   expressApp.use((req, res, next) => {
-    // This logs every request to the terminal so you can see if /api/messages is hit
     console.log(`📨 Request: ${req.method} ${req.url}`);
     next();
   });

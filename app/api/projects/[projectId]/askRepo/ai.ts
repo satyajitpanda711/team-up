@@ -6,10 +6,8 @@ import Project from "@/models/Project";
 import RepoFile from "@/models/RepoFile";
 import Repository from "@/models/Repository";
 import { Groq } from "groq-sdk";
-import AskRepoMessage from "@/models/AskRepoMessage";
+import AskRepoMessages from "@/models/AskRepoMessages";
 import User from "@/models/User";
-import { authOptions } from "@/lib/auth";
-import { getServerSession } from "next-auth/next";
 
 const API_KEY = process.env.GROQ_API || "";
 
@@ -76,7 +74,7 @@ const ingestRepo = async (projectId: string, repoId: string) => {
   }
 };
 
-const askRepo = async (projectId: string, question: string) => {
+const askRepo = async (projectId: string, question: string, userEmail?: string | null) => {
   await connectDB();
 
   const project = await Project.findById(projectId);
@@ -89,7 +87,7 @@ const askRepo = async (projectId: string, question: string) => {
 
   /* Chat history */
 
-  const history = await AskRepoMessage.find({
+  const history = await AskRepoMessages.find({
     repository: repository._id,
   })
     .sort({ createdAt: -1 })
@@ -104,48 +102,41 @@ const askRepo = async (projectId: string, question: string) => {
   /* Prompt */
 
   const prompt = `
-You are an AI assistant helping developers understand a GitHub repository.
+You are a senior developer helping explain a GitHub repository.
 
-Use ONLY the repository context provided below to answer the question.
+## Context
+README:
+${repoContext.readme.slice(0, 1500)}
 
--------------------------
-REPOSITORY README
-${repoContext.readme}
+FILES:
+${repoContext.structure.slice(0, 800)}
 
-REPOSITORY STRUCTURE
-${repoContext.structure}
-
-RECENT COMMITS
+COMMITS:
 ${repoContext.commits}
 
-PREVIOUS QUESTIONS
+HISTORY:
 ${historyContext}
--------------------------
 
-USER QUESTION
+## Question
 ${question}
 
--------------------------
-RULES
-- Respond ONLY in valid Markdown.
-- Do NOT write plain text outside Markdown sections.
-- Be concise (maximum 5–7 sentences).
-- Use bullet points when helpful.
-- Mention relevant file paths if possible.
-- If the answer cannot be found in the repository context, write:
-  "Not found in repository context."
+## Instructions
+- Answer ONLY using the given context.
+- If not found, say: "Not found in repository context."
+- Be clear, concise, and structured.
+- Mention exact file names or components when relevant.
 
--------------------------
-RESPONSE FORMAT
+## Output Format
 
-## Answer
-Brief explanation of the answer.
+Answer:
+(3–5 sentences explanation in 250 characters only) 
 
-## Related Files
-- path/to/file.ts
-- another/file.js
+How it works:
+(optional steps or explanation)
 
-Only output the Markdown above. Do not include explanations outside this structure.
+Files:
+- file: purpose
+- file: purpose
 `;
 
   /* AI call */
@@ -153,25 +144,27 @@ Only output the Markdown above. Do not include explanations outside this structu
   const completion = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",
     messages: [{ role: "user", content: prompt }],
-    max_tokens: 150,
+    max_tokens: 250,
     temperature: 0.3,
   });
 
-  const answer = completion.choices?.[0]?.message?.content || "";
+  const rawAnswer = completion.choices?.[0]?.message?.content || "";
+
+  const answer = typeof rawAnswer === "string"
+    ? rawAnswer
+    : JSON.parse(JSON.stringify(rawAnswer));
 
   /* User */
 
-  const session = await getServerSession(authOptions);
-
-  const userData = await User.findOne({
-    email: session?.user?.email,
-  }).lean();
+  const userData = userEmail
+    ? await User.findOne({ email: userEmail }).lean()
+    : null;
 
   const username = userData?.name || "Anonymous";
 
   /* Save message */
 
-  const askRepoMessage = new AskRepoMessage({
+  const askRepoMessage = new AskRepoMessages({
     projectId,
     repository: repository._id,
     user: userData?._id,
@@ -184,9 +177,9 @@ Only output the Markdown above. Do not include explanations outside this structu
   await askRepoMessage.save();
 
   return {
-    answer,
-    askRepoMessageId: askRepoMessage._id,
-    user: username,
+    answer: String(answer),
+    askRepoMessageId: askRepoMessage._id.toString(),
+    user: String(username),
   };
 };
 

@@ -26,8 +26,9 @@ export async function GET(
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  const repository = await Repository.findOne({ project: projectId }).lean();
+  const repository = await Repository.findOne({ projectId: projectId }).lean();
   if (!repository) {
+    console.log("Repository not found");
     return NextResponse.json({ error: "Repository not found" }, { status: 404 });
   }
 

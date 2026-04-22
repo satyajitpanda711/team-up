@@ -8,3 +8,22 @@ export const getRepositoriesForProject = async (projectId: string) => {
   if (!repo) throw new Error("Project not found");
   return repo;
 }
+
+export const getRepoIdfromProjectId = async (projectId: string) => {
+  try {
+    await connectDB();
+    const project = await Project.findById(projectId);
+    if(!project) {
+      throw new Error("Project not found");
+    }
+    
+    const repository = await Repository.findOne({ projectId: projectId });
+    if(!repository) {
+      throw new Error("Repository not found");
+    }
+    return repository._id;  
+
+  } catch(e : any) {
+    throw new Error("Project not found");
+  } 
+}
