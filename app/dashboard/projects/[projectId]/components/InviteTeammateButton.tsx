@@ -20,8 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useParams } from "next/navigation";
+import { toast } from "sonner";
 
 export default function InviteTeammateButton() {
+    const params = useParams();
+  const projectId = params.projectId as string;
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
   const [loading, setLoading] = useState(false);
@@ -31,9 +35,20 @@ export default function InviteTeammateButton() {
 
     setLoading(true);
 
-    // 🔌 FUTURE API HOOK
-    await new Promise((res) => setTimeout(res, 800));
+    const res = await fetch(`/api/projects/${projectId}/add_teammate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ teammateEmail: email, role }),
+    });
 
+    if (!res.ok) {
+      const {error} = await res.json();
+      toast.error(error || "Failed to add teammate");
+      setLoading(false);
+      return;
+    }
+
+    toast.success("Teammate added successfully");
     setEmail("");
     setRole("member");
     setLoading(false);

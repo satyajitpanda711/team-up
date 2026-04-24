@@ -120,7 +120,7 @@ export default function PullRequestsTab({ projectId }: { projectId: string }) {
 
   if (pullRequests.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 text-center">
+      <div className="flex flex-col items-center justify-center p-12 text-center h-full">
         <div className="rounded-full bg-muted p-4 mb-4">
           <GitPullRequest className="h-8 w-8 text-muted-foreground" />
         </div>

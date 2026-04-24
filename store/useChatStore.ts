@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import { io, Socket } from "socket.io-client"
+import { toast } from "sonner"
 
 type Message = {
   _id: string
@@ -69,6 +70,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     const { socket } = get()
     if (!socket?.connected) {
       console.warn("⚠️ Socket not connected — cannot send message")
+      toast.error("Not connected to chat. Try refreshing.")
       return
     }
     socket.emit("message:send", content)
@@ -87,6 +89,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       set({ messages: data })
     } catch (err) {
       console.error("❌ Fetch messages error:", err)
+      toast.error("Failed to load messages.")
     } finally {
       set({ isLoading: false })
     }

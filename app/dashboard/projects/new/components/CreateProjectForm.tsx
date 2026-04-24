@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,9 +44,11 @@ export default function CreateProjectForm() {
         throw new Error(data.error || "Failed to create project");
       }
 
+      toast.success("Project created successfully");
       router.push(`/dashboard/projects/${data.projectId}`);
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }

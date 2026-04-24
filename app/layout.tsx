@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "./providers";
 import { DM_Sans } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { Toaster } from "@/components/ui/sonner"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,6 +36,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={dmSans.variable}>
         <Providers>{children}</Providers>
+        <Toaster />
       </body>
     </html>
   );

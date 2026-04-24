@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { useSession } from "next-auth/react"
 import { Bot, Loader2, Send, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
 
 type QAPair = {
   _id: string
@@ -76,6 +77,7 @@ export default function AskRepo({ projectId }: { projectId: string }) {
       ])
     } catch (err) {
       console.error("AskRepo error:", err)
+      toast.error("Failed to get answer. Please try again.")
     } finally {
       setPendingQuestion(null)
       setIsLoading(false)
