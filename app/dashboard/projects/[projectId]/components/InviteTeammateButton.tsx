@@ -84,9 +84,8 @@ export default function InviteTeammateButton() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="member">Member</SelectItem>
-                <SelectItem value="viewer">Viewer</SelectItem>
+                <SelectItem value="owner">Owner</SelectItem>
+                <SelectItem value="developer">Developer</SelectItem>
               </SelectContent>
             </Select>
           </div>

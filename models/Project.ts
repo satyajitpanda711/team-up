@@ -20,7 +20,7 @@ const ProjectSchema = new Schema(
                 user: { type: Schema.Types.ObjectId, ref: "User" },
                 role: {
                     type: String,
-                    enum: ["owner", "maintainer", "developer", "viewer"],
+                    enum: ["owner", "developer"],
                     default: "developer",
                 },
             },
