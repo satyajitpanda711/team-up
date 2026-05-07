@@ -16,7 +16,6 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// ─── Types ───────────────────────────────────────────────────────────
 type RepoFile = {
   _id: string;
   path: string;
@@ -34,7 +33,6 @@ type TreeNode = {
   children: TreeNode[];
 };
 
-// ─── Helpers ─────────────────────────────────────────────────────────
 const LANG_COLORS: Record<string, string> = {
   ts: "text-blue-400",
   tsx: "text-blue-400",
