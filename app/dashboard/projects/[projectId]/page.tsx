@@ -438,7 +438,7 @@ export default async function ProjectPage({
         .ri-fade-up-3 { animation: ri-fade-up 0.5s ease 0.25s both; }
         .ri-fade-up-4 { animation: ri-fade-up 0.5s ease 0.35s both; }
       `}</style>
-      <main className="min-h-screen">
+      <main className="h-screen">
 
         {/* HEADER */}
         <div className="border-b backdrop-blur-xl">

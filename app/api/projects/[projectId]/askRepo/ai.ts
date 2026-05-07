@@ -121,22 +121,11 @@ ${historyContext}
 ${question}
 
 ## Instructions
-- Answer ONLY using the given context.
-- If not found, say: "Not found in repository context."
-- Be clear, concise, and structured.
-- Mention exact file names or components when relevant.
-
-## Output Format
-
-Answer:
-(3–5 sentences explanation in 250 characters only) 
-
-How it works:
-(optional steps or explanation)
-
-Files:
-- file: purpose
-- file: purpose
+- Answer the user's question directly and concisely.
+- ONLY use the provided repository context to answer.
+- If the answer is not found in the context, say: "I couldn't find that information in the repository context."
+- Use Markdown formatting (bolding, lists, code blocks) to make your answer easy to read.
+- Do not sign off with a name or add unnecessary greetings.
 `;
 
   /* AI call */
@@ -144,8 +133,8 @@ Files:
   const completion = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",
     messages: [{ role: "user", content: prompt }],
-    max_tokens: 250,
-    temperature: 0.3,
+    max_tokens: 800,
+    temperature: 0.5,
   });
 
   const rawAnswer = completion.choices?.[0]?.message?.content || "";
