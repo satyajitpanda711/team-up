@@ -19,7 +19,7 @@ const ingestRepo = async (projectId: string, repoId: string) => {
   try {
     const project = await Project.findById(projectId);
     if (!project) {
-      throw new Error("Project not found");
+      throw new Error("Project not found")
     }
 
     const repository = await Repository.findById(repoId);
