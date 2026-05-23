@@ -448,7 +448,11 @@ export default async function ProjectPage({
               <p className="text-xs">Project workspace</p>
             </div>
 
+
             <div className="flex gap-3">
+            <div className="flex ">
+              <Button variant="outline" className="hover:text-gray-400">Ingest GitHub Repo</Button>
+            </div>
               {project.githubRepoUrl && (
                 <Button size="sm" asChild>
                   <a href={project.githubRepoUrl} target="_blank">

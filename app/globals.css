@@ -44,7 +44,7 @@
   --shadow-blur: 10px;
   --shadow-spread: 0px;
   --shadow-opacity: 0.1;
-  --shadow-color: rgba(0,0,0,0.1);
+  --shadow-color: #000000;
   --shadow-2xs: 0px 2px 10px 0px hsl(0 0% 0% / 0.05);
   --shadow-xs: 0px 2px 10px 0px hsl(0 0% 0% / 0.05);
   --shadow-sm: 0px 2px 10px 0px hsl(0 0% 0% / 0.10), 0px 1px 2px -1px hsl(0 0% 0% / 0.10);
@@ -99,7 +99,7 @@
   --shadow-blur: 12px;
   --shadow-spread: 0px;
   --shadow-opacity: 0.4;
-  --shadow-color: rgba(0,0,0,0.4);
+  --shadow-color: #000000;
   --shadow-2xs: 0px 4px 12px 0px hsl(0 0% 0% / 0.20);
   --shadow-xs: 0px 4px 12px 0px hsl(0 0% 0% / 0.20);
   --shadow-sm: 0px 4px 12px 0px hsl(0 0% 0% / 0.40), 0px 1px 2px -1px hsl(0 0% 0% / 0.40);

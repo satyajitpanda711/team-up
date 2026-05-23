@@ -44,7 +44,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const { active, tab } = useMemo(() => resolveNav(path), [path]);
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background text-foreground font-sans">
+    <div className="flex h-screen w-full overflow-hidden text-foreground font-sans">
       <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
 
         {/* ── Sidebar panel ── */}
@@ -141,10 +141,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </header>
 
             {/* Content with inner resizable panels */}
-            <div className="flex-1 overflow-hidden p-4 bg-black">
-              <ResizablePanelGroup orientation="horizontal" className="h-full rounded-xl">
+            <div className="flex-1 overflow-hidden p-4 bg-card/30">
+              <ResizablePanelGroup orientation="horizontal" className="h-full rounded-xl border-2">
                 <ResizablePanel defaultSize={100} minSize={100}>
-                  <div className="h-full overflow-y-auto pr-4 bg-card/30">
+                  <div className="h-full overflow-y-auto pr-4 bg-card">
                     {children}
                   </div>
                 </ResizablePanel>

@@ -158,7 +158,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
               <h2 className="text-sm font-semibold">Your Projects</h2>
             </div>
             <Link
-              href="/dashboard/projects"
+              href="/dashboard/projects/my_projects"
               className="text-xs text-primary hover:underline flex items-center gap-1"
             >
               View all <ArrowUpRight className="w-3 h-3" />
