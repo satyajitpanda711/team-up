@@ -255,3 +255,34 @@ export async function fetchIssues(
     token
   );
 }
+
+export const fetchFileContent = async (owner:string, repo:string, path:string, token:string) => {
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/contents/${path}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github+json",
+        },
+      }
+    );
+    if(!res.ok) {
+      return null;
+    }
+
+    const data = await res.json();
+    if(!data.content) {
+      return null;
+    }
+
+    return Buffer.from(data.content, "base64").toString("utf-8");
+
+  } catch (error: any) {
+    console.error("Failed to fetch file content:", error);
+    if(error.status === 404) {
+      return null;
+    }
+    throw error;
+  }
+}

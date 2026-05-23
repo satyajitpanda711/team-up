@@ -9,48 +9,55 @@ import { Groq } from "groq-sdk";
 import AskRepoMessages from "@/models/AskRepoMessages";
 import User from "@/models/User";
 
+import { retrieveRelevantFiles } from "@/lib/retrieve";
+
 const API_KEY = process.env.GROQ_API || "";
 
 const groq = new Groq({
   apiKey: API_KEY,
 });
 
-const ingestRepo = async (projectId: string, repoId: string) => {
+/* =========================================
+   INGEST REPO CONTEXT
+========================================= */
+
+const ingestRepo = async (
+  projectId: string,
+  repoId: string
+) => {
   try {
     const project = await Project.findById(projectId);
+
     if (!project) {
-      throw new Error("Project not found")
+      throw new Error("Project not found");
     }
 
     const repository = await Repository.findById(repoId);
+
     if (!repository) {
       throw new Error("Repository not found");
     }
 
-    console.log("Repository found in ingestRepo:", repository._id);
+    console.log(
+      "Repository found in ingestRepo:",
+      repository._id
+    );
 
-    /* README */
+    /* =========================
+       README
+    ========================= */
 
     const readme = await RepoFile.findOne({
       repository: repoId,
       path: "README.md",
     }).lean();
 
-    // limit README size to avoid huge prompts
-    const readmeContent = readme?.content?.slice(0, 3000) || "";
+    const readmeContent =
+      readme?.content?.slice(0, 3000) || "";
 
-    /* Repo structure */
-
-    const files = await RepoFile.find({
-      repository: repoId,
-      type: "file",
-    })
-      .limit(25)
-      .lean();
-
-    const structure = files.map((f) => `• ${f.path}`).join("\n");
-
-    /* Recent commits */
+    /* =========================
+       RECENT COMMITS
+    ========================= */
 
     const commits = await Commit.find({
       repository: repoId,
@@ -60,12 +67,14 @@ const ingestRepo = async (projectId: string, repoId: string) => {
       .lean();
 
     const commitContext = commits
-      .map((c: { message: string }) => `• ${c.message}`)
+      .map(
+        (c: { message: string }) =>
+          `• ${c.message}`
+      )
       .join("\n");
 
     return {
       readme: readmeContent,
-      structure,
       commits: commitContext,
     };
   } catch (error) {
@@ -74,18 +83,80 @@ const ingestRepo = async (projectId: string, repoId: string) => {
   }
 };
 
-const askRepo = async (projectId: string, question: string, userEmail?: string | null) => {
+/* =========================================
+   ASK REPO
+========================================= */
+
+const askRepo = async (
+  projectId: string,
+  question: string,
+  userEmail?: string | null
+) => {
   await connectDB();
 
+  /* =========================
+     PROJECT
+  ========================= */
+
   const project = await Project.findById(projectId);
-  if (!project) throw new Error("Project not found");
 
-  const repository = await Repository.findOne({ projectId });
-  if (!repository) throw new Error("Repository not found");
+  if (!project) {
+    throw new Error("Project not found");
+  }
 
-  const repoContext = await ingestRepo(projectId, repository._id.toString());
+  /* =========================
+     REPOSITORY
+  ========================= */
 
-  /* Chat history */
+  const repository = await Repository.findOne({
+    projectId,
+  });
+
+  if (!repository) {
+    throw new Error("Repository not found");
+  }
+
+  /* =========================
+     RETRIEVE RELEVANT FILES
+  ========================= */
+
+  const relevantFiles =
+    await retrieveRelevantFiles(
+      repository._id.toString(),
+      question
+    );
+
+  console.log(
+    "Relevant files:",
+    relevantFiles.map((f: any) => f.path)
+  );
+
+  /* =========================
+     GENERAL REPO CONTEXT
+  ========================= */
+
+  const repoContext = await ingestRepo(
+    projectId,
+    repository._id.toString()
+  );
+
+  /* =========================
+     BUILD RETRIEVED CONTEXT
+  ========================= */
+
+  const relevantContext = relevantFiles
+    .map(
+      (chunk: any) => `
+FILE: ${chunk.path}
+
+${chunk.content}
+`
+    )
+    .join("\n\n");
+
+  /* =========================
+     CHAT HISTORY
+  ========================= */
 
   const history = await AskRepoMessages.find({
     repository: repository._id,
@@ -95,21 +166,27 @@ const askRepo = async (projectId: string, question: string, userEmail?: string |
     .lean();
 
   const historyContext = history
-    .map((h) => `Q: ${h.question}\nA: ${h.answer}`)
+    .map(
+      (h) =>
+        `Q: ${h.question}\nA: ${h.answer}`
+    )
     .reverse()
     .join("\n\n");
 
-  /* Prompt */
+  /* =========================
+     PROMPT
+  ========================= */
 
   const prompt = `
 You are a senior developer helping explain a GitHub repository.
 
 ## Context
+
 README:
 ${repoContext.readme.slice(0, 1500)}
 
-FILES:
-${repoContext.structure.slice(0, 800)}
+RELEVANT FILES:
+${relevantContext}
 
 COMMITS:
 ${repoContext.commits}
@@ -122,52 +199,74 @@ ${question}
 
 ## Instructions
 - Answer the user's question directly and concisely.
-- ONLY use the provided repository context to answer.
-- If the answer is not found in the context, say: "I couldn't find that information in the repository context."
-- Use Markdown formatting (bolding, lists, code blocks) to make your answer easy to read.
-- Do not sign off with a name or add unnecessary greetings.
+- ONLY use the provided repository context.
+- If the answer is not found in the context, say:
+"I couldn't find that information in the repository context."
+- Use Markdown formatting.
+- Explain code flow clearly when relevant.
+- Do not hallucinate implementation details.
+- Prefer retrieved files over assumptions.
 `;
 
-  /* AI call */
 
-  const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
-    messages: [{ role: "user", content: prompt }],
-    max_tokens: 800,
-    temperature: 0.5,
-  });
+  const completion =
+    await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
 
-  const rawAnswer = completion.choices?.[0]?.message?.content || "";
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
 
-  const answer = typeof rawAnswer === "string"
-    ? rawAnswer
-    : JSON.parse(JSON.stringify(rawAnswer));
+      max_tokens: 800,
+      temperature: 0.5,
+    });
 
-  /* User */
+  const rawAnswer =
+    completion.choices?.[0]?.message
+      ?.content || "";
+
+  const answer =
+    typeof rawAnswer === "string"
+      ? rawAnswer
+      : JSON.parse(JSON.stringify(rawAnswer));
 
   const userData = userEmail
-    ? await User.findOne({ email: userEmail }).lean()
+    ? await User.findOne({
+      email: userEmail,
+    }).lean()
     : null;
 
-  const username = userData?.name || "Anonymous";
+  const username =
+    userData?.name || "Anonymous";
 
-  /* Save message */
+  const askRepoMessage =
+    new AskRepoMessages({
+      projectId,
 
-  const askRepoMessage = new AskRepoMessages({
-    projectId,
-    repository: repository._id,
-    user: userData?._id,
-    username,
-    question,
-    answer,
-    answered: true,
-  });
+      repository: repository._id,
+
+      user: userData?._id,
+
+      username,
+
+      question,
+
+      answer,
+
+      answered: true,
+    });
 
   await askRepoMessage.save();
 
   return {
     answer: String(answer),
-    askRepoMessageId: askRepoMessage._id.toString(),
+
+    askRepoMessageId:
+      askRepoMessage._id.toString(),
+
     user: String(username),
   };
 };

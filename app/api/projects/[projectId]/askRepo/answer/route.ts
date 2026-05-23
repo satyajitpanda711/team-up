@@ -9,9 +9,9 @@ import { getToken } from "next-auth/jwt";
 
 export const runtime = "nodejs";
 
-/* =========================
-   GET — fetch history
-========================= */
+
+// api/askRepo/answer/route.ts
+
 export const GET = async (
   _req: NextRequest,
   { params }: { params: Promise<{ projectId: string }> }
@@ -29,10 +29,11 @@ export const GET = async (
     if (!repository) {
       return NextResponse.json({ error: "Repository not found" }, { status: 404 });
     }
+    const skip = Number(_req.nextUrl.searchParams.get("skip")) || 0;
 
     const messages = await AskRepoMessages.find({
       repository: repository._id,
-    }).sort({ createdAt: 1 });
+    }).sort({ createdAt: 1 }).limit(3).skip(skip);
 
     return NextResponse.json(messages);
   } catch (error) {

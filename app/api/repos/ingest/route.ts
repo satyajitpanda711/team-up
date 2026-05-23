@@ -19,7 +19,10 @@ import {
     fetchCommits,
     fetchPullRequests,
     fetchIssues,
+    fetchFileContent,
 } from "@/lib/services/github";
+
+// /api/repos/ingest/route.ts
 
 /* ======================
    TYPES
@@ -168,25 +171,71 @@ export async function POST(req: NextRequest) {
 
         const remotePaths = new Set<string>();
 
+        const importantExtensions = [
+            ".ts",
+            ".tsx",
+            ".js",
+            ".jsx",
+            ".md",
+            ".json",
+        ];
+
+        const MAX_FILE_SIZE = 10000;
+
         for (const node of tree.tree) {
             if (
                 node.path.startsWith(".git") ||
-                node.path.includes("node_modules")
-            )
+                node.path.includes("node_modules") ||
+                node.path.includes("dist") ||
+                node.path.includes("build")
+            ) {
                 continue;
+            }
 
             remotePaths.add(node.path);
 
+            const shouldStoreContent =
+                node.type === "blob" &&
+                importantExtensions.some((ext) =>
+                    node.path.endsWith(ext)
+                );
+
+            let content = "";
+
+            if (shouldStoreContent) {
+                console.log("Fetching content:", node.path);
+
+                const fetchedContent = await fetchFileContent(
+                    owner,
+                    repoName,
+                    node.path,
+                    user.githubAccessToken
+                );
+
+                if (fetchedContent) {
+                    content = fetchedContent.slice(0, MAX_FILE_SIZE);
+                }
+            }
+
             await RepoFile.findOneAndUpdate(
-                { repository: repository._id, path: node.path },
+                {
+                    repository: repository._id,
+                    path: node.path,
+                },
                 {
                     repository: repository._id,
                     path: node.path,
                     type: node.type === "tree" ? "dir" : "file",
                     size: node.size ?? 0,
+
+                    // RAG content
+                    content,
+
                     deletedAt: null,
                 },
-                { upsert: true }
+                {
+                    upsert: true,
+                }
             );
         }
 
