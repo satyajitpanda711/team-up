@@ -7,6 +7,7 @@ import {
   AlertCircle,
   MessageSquare,
   Bot,
+  Activity,
 } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,17 +19,19 @@ import PullRequestsTab from "./tabs/PullRequestsTab";
 import QuestionsTab from "./tabs/QuestionsTab";
 import ChatTab from "./tabs/ChatTab";
 import AskRepo from "./tabs/AskRepo";
+import AnalyticsTab from "./tabs/AnalyticsTab";
 
 export default function ProjectTabs({ projectId }: { projectId: string }) {
   return (
     <Tabs defaultValue="repo" className="h-full grid grid-rows-[auto_1fr]  overflow-hidden">
 
-      <TabsList className="grid grid-cols-7 rounded-none border-b w-full">
+      <TabsList className="grid grid-cols-8 rounded-none border-b w-full h-11">
         {[
           ["repo", "Repo", FolderTree],
           ["commits", "Commits", GitCommit],
           ["prs", "PRs", GitPullRequest],
           ["issues", "Issues", AlertCircle],
+          ["analytics", "Analytics", Activity],
           ["questions", "Questions", MessageSquare],
           ["chat", "Chat", MessageSquare],
           ["ai-assistant", "AskRepo", Bot],
@@ -39,7 +42,7 @@ export default function ProjectTabs({ projectId }: { projectId: string }) {
             className="flex gap-2 items-center"
           >
             <Icon className="w-4 h-4" />
-            {label}
+            <span className="hidden xl:inline">{label}</span>
           </TabsTrigger>
         ))}
       </TabsList>
@@ -61,6 +64,10 @@ export default function ProjectTabs({ projectId }: { projectId: string }) {
 
         <TabsContent value="issues" className="absolute inset-0 overflow-auto m-0">
           <IssuesTab projectId={projectId} />
+        </TabsContent>
+        
+        <TabsContent value="analytics" className="absolute inset-0 overflow-auto m-0">
+          <AnalyticsTab projectId={projectId} />
         </TabsContent>
 
         <TabsContent value="questions" className="absolute inset-0 overflow-auto m-0">

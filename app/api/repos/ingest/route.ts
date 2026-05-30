@@ -163,6 +163,98 @@ export async function POST(req: NextRequest) {
         /* ======================
            TREE
         ====================== */
+        
+        /* ======================
+        COMMITS
+        ====================== */
+        const commits = (await fetchCommits(
+            repoId,
+            user.githubAccessToken,
+            lastSyncedAt ?? undefined
+        )) as GitHubCommit[];
+
+        let newCommits = 0;
+
+        for (const c of commits) {
+            const existing = await Commit.findOneAndUpdate(
+                { repository: repository._id, sha: c.sha },
+                {
+                    repository: repository._id,
+                    sha: c.sha,
+                    message: c.commit.message,
+                    author: c.commit.author?.name,
+                    date: c.commit.author?.date,
+                },
+                { upsert: true, new: false }
+            );
+
+            if (!existing) newCommits++;
+        }
+
+        /* ======================
+           PRs
+        ====================== */
+        const prs = (await fetchPullRequests(
+            repoId,
+            user.githubAccessToken,
+            lastSyncedAt ?? undefined
+        )) as GitHubPR[];
+
+        let newPRs = 0;
+        let updatedPRs = 0;
+        
+        for (const pr of prs) {
+            const existing = await PullRequest.findOneAndUpdate(
+                { repository: repository._id, number: pr.number },
+                {
+                    repository: repository._id,
+                    number: pr.number,
+                    title: pr.title,
+                    body: pr.body,
+                    state: pr.state,
+                    merged: Boolean(pr.merged_at),
+                    updatedAt: pr.updated_at,
+                },
+                { upsert: true, new: false }
+            );
+            
+            if (!existing) newPRs++;
+            else updatedPRs++;
+        }
+        
+        /* ======================
+           ISSUES
+        ====================== */
+        const issues = (await fetchIssues(
+            repoId,
+            user.githubAccessToken,
+            lastSyncedAt ?? undefined
+        )) as GitHubIssue[];
+
+        let newIssues = 0;
+        let updatedIssues = 0;
+
+        for (const issue of issues) {
+            if (issue.pull_request) continue;
+            
+            const existing = await Issue.findOneAndUpdate(
+                { repository: repository._id, number: issue.number },
+                {
+                    repository: repository._id,
+                    number: issue.number,
+                    title: issue.title,
+                    body: issue.body,
+                    state: issue.state,
+                    labels: issue.labels.map((l) => l.name),
+                    updatedAt: issue.updated_at,
+                },
+                { upsert: true, new: false }
+            );
+
+            if (!existing) newIssues++;
+            else updatedIssues++;
+        }
+
         const tree = (await fetchRepoTree(
             repoId,
             repoMeta.default_branch,
@@ -275,98 +367,6 @@ export async function POST(req: NextRequest) {
                 { upsert: true }
             );
         }
-
-        /* ======================
-           COMMITS
-        ====================== */
-        const commits = (await fetchCommits(
-            repoId,
-            user.githubAccessToken,
-            lastSyncedAt ?? undefined
-        )) as GitHubCommit[];
-
-        let newCommits = 0;
-
-        for (const c of commits) {
-            const existing = await Commit.findOneAndUpdate(
-                { repository: repository._id, sha: c.sha },
-                {
-                    repository: repository._id,
-                    sha: c.sha,
-                    message: c.commit.message,
-                    author: c.commit.author?.name,
-                    date: c.commit.author?.date,
-                },
-                { upsert: true, new: false }
-            );
-
-            if (!existing) newCommits++;
-        }
-
-        /* ======================
-           PRs
-        ====================== */
-        const prs = (await fetchPullRequests(
-            repoId,
-            user.githubAccessToken,
-            lastSyncedAt ?? undefined
-        )) as GitHubPR[];
-
-        let newPRs = 0;
-        let updatedPRs = 0;
-
-        for (const pr of prs) {
-            const existing = await PullRequest.findOneAndUpdate(
-                { repository: repository._id, number: pr.number },
-                {
-                    repository: repository._id,
-                    number: pr.number,
-                    title: pr.title,
-                    body: pr.body,
-                    state: pr.state,
-                    merged: Boolean(pr.merged_at),
-                    updatedAt: pr.updated_at,
-                },
-                { upsert: true, new: false }
-            );
-
-            if (!existing) newPRs++;
-            else updatedPRs++;
-        }
-
-        /* ======================
-           ISSUES
-        ====================== */
-        const issues = (await fetchIssues(
-            repoId,
-            user.githubAccessToken,
-            lastSyncedAt ?? undefined
-        )) as GitHubIssue[];
-
-        let newIssues = 0;
-        let updatedIssues = 0;
-
-        for (const issue of issues) {
-            if (issue.pull_request) continue;
-
-            const existing = await Issue.findOneAndUpdate(
-                { repository: repository._id, number: issue.number },
-                {
-                    repository: repository._id,
-                    number: issue.number,
-                    title: issue.title,
-                    body: issue.body,
-                    state: issue.state,
-                    labels: issue.labels.map((l) => l.name),
-                    updatedAt: issue.updated_at,
-                },
-                { upsert: true, new: false }
-            );
-
-            if (!existing) newIssues++;
-            else updatedIssues++;
-        }
-
         /* ======================
            RESPONSE
         ====================== */

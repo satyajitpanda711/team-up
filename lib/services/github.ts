@@ -286,3 +286,37 @@ export const fetchFileContent = async (owner:string, repo:string, path:string, t
     throw error;
   }
 }
+
+export async function fetchCommitFiles(
+  owner: string,
+  repo: string,
+  sha: string,
+  token: string
+) {
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/commits/${sha}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github+json",
+        },
+      }
+    );
+
+    if (!res.ok) {
+      return [];
+    }
+
+    const data = await res.json();
+
+    return data.files || [];
+  } catch (error) {
+    console.error(
+      "fetchCommitFiles error:",
+      error
+    );
+
+    return [];
+  }
+}

@@ -191,53 +191,40 @@ export default function AskRepo({ projectId }: { projectId: string }) {
   )
 }
 
-// Lightweight markdown renderer — handles bold, code, headers, bullets
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
 function MarkdownAnswer({ content }: { content: string }) {
-  const lines = content.split("\n")
-
   return (
-    <div className="space-y-1.5">
-      {lines.map((line, i) => {
-        if (line.startsWith("## ")) {
-          return <p key={i} className="font-semibold text-sm mt-2">{line.slice(3)}</p>
-        }
-        if (line.startsWith("# ")) {
-          return <p key={i} className="font-bold text-sm mt-2">{line.slice(2)}</p>
-        }
-        if (line.startsWith("- ") || line.startsWith("• ")) {
-          return (
-            <div key={i} className="flex gap-1.5 text-sm">
-              <span className="mt-0.5 flex-shrink-0">•</span>
-              <span>{renderInline(line.slice(2))}</span>
+    <div className="prose prose-sm dark:prose-invert max-w-none text-sm break-words
+                    prose-p:leading-relaxed prose-pre:bg-black/50 prose-pre:border prose-pre:border-border
+                    prose-code:text-primary prose-code:bg-muted-foreground/10 prose-code:px-1 prose-code:py-0.5 prose-code:rounded-sm
+                    prose-a:text-blue-500 hover:prose-a:text-blue-600 prose-a:no-underline">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          pre: ({ node, ...props }) => (
+            <div className="overflow-auto w-full my-2 bg-black/50 rounded-md border border-border/50 line-height-2">
+              <pre {...props} className="p-3 text-xs bg-transparent m-0" />
             </div>
-          )
-        }
-        if (line.startsWith("```")) {
-          return null // skip code fences — handled below
-        }
-        if (line.trim() === "") {
-          return <div key={i} className="h-1" />
-        }
-        return <p key={i} className="text-sm">{renderInline(line)}</p>
-      })}
+          ),
+          code: ({ node, className, children, ...props }) => {
+            const match = /language-(\w+)/.exec(className || "");
+            const isInline = !match && !className;
+            return isInline ? (
+              <code className="text-[12px] bg-background/50 text-foreground px-1 py-0.5 rounded-sm font-mono border border-border/50" {...props}>
+                {children}
+              </code>
+            ) : (
+              <code className={className} {...props}>
+                {children}
+              </code>
+            );
+          },
+        }}
+      >
+        {content}
+      </ReactMarkdown>
     </div>
-  )
-}
-
-function renderInline(text: string): React.ReactNode {
-  // Bold: **text**
-  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/)
-  return parts.map((part, i) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={i}>{part.slice(2, -2)}</strong>
-    }
-    if (part.startsWith("`") && part.endsWith("`")) {
-      return (
-        <code key={i} className="text-xs bg-background/60 rounded px-1 py-0.5 font-mono">
-          {part.slice(1, -1)}
-        </code>
-      )
-    }
-    return part
-  })
+  );
 }

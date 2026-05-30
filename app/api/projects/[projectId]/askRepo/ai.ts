@@ -119,7 +119,10 @@ const askRepo = async (
   /* =========================
      RETRIEVE RELEVANT FILES
   ========================= */
-
+  console.log(
+    "Fetching relevant files for repository:",
+    repository._id
+  );
   const relevantFiles =
     await retrieveRelevantFiles(
       repository._id.toString(),
@@ -153,6 +156,8 @@ ${chunk.content}
 `
     )
     .join("\n\n");
+
+  console.log("Retrival Context: ", relevantContext);
 
   /* =========================
      CHAT HISTORY
@@ -220,7 +225,7 @@ ${question}
         },
       ],
 
-      max_tokens: 800,
+      max_tokens: 900,
       temperature: 0.5,
     });
 

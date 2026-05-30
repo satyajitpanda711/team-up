@@ -69,7 +69,8 @@ function buildTree(files: RepoFile[]): TreeNode[] {
   const root: TreeNode[] = [];
 
   for (const file of files) {
-    const parts = file.path.split("/");
+    const normalizedPath = file.path.replace(/\\/g, "/");
+    const parts = normalizedPath.split("/");
     let current = root;
 
     for (let i = 0; i < parts.length; i++) {
@@ -84,7 +85,7 @@ function buildTree(files: RepoFile[]): TreeNode[] {
           name,
           path: pathSoFar,
           type: isFile ? "file" : "folder",
-          language: isFile ? file.language || getExtension(file.path) : undefined,
+          language: isFile ? file.language || getExtension(normalizedPath) : undefined,
           size: isFile ? file.size : undefined,
           children: [],
         };
@@ -127,79 +128,92 @@ function TreeItem({
   const isFolder = node.type === "folder";
   const isOpen = expanded.has(node.path);
   const isSelected = selected === node.path;
+
   const ext = getExtension(node.name);
   const langColor = LANG_COLORS[ext] || "text-muted-foreground";
 
+  const childCount = node.children.length;
+
   return (
-    <>
+    <div className="relative">
       <button
         onClick={() => {
-          if (isFolder) {
-            onToggle(node.path);
-          } else {
-            onSelect(node.path);
-          }
+          if (isFolder) onToggle(node.path);
+          else onSelect(node.path);
         }}
         className={`
-          flex items-center gap-1.5 w-full text-left px-2 py-1.5 rounded-md text-[12.5px]
-          transition-colors duration-100 group
+          relative flex items-center gap-2 w-full h-8
+          text-left px-2 rounded-md group
+          transition-all duration-150
           ${isSelected
             ? "bg-primary/10 text-primary"
-            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
           }
         `}
-        style={{ paddingLeft: `${depth * 16 + 8}px` }}
+        style={{
+          paddingLeft: `${depth * 18 + 8}px`,
+        }}
       >
-        {/* Chevron for folders */}
-        {isFolder ? (
-          isOpen ? (
-            <ChevronDown className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-          ) : (
-            <ChevronRight className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-          )
-        ) : (
-          <span className="w-3.5" />
+        {isSelected && (
+          <div className="absolute left-0 top-1 bottom-1 w-[2px] bg-primary rounded-full" />
         )}
 
-        {/* Icon */}
         {isFolder ? (
           isOpen ? (
-            <FolderOpen className="w-4 h-4 shrink-0 text-amber-400" />
+            <ChevronDown className="w-3.5 h-3.5 shrink-0" />
           ) : (
-            <Folder className="w-4 h-4 shrink-0 text-amber-400" />
+            <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+          )
+        ) : (
+          <div className="w-3.5" />
+        )}
+
+        {isFolder ? (
+          isOpen ? (
+            <FolderOpen className="w-4 h-4 text-amber-400 shrink-0" />
+          ) : (
+            <Folder className="w-4 h-4 text-amber-400 shrink-0" />
           )
         ) : (
           <FileCode className={`w-4 h-4 shrink-0 ${langColor}`} />
         )}
 
-        {/* Name */}
-        <span className="truncate flex-1">{node.name}</span>
+        <span className="truncate flex-1 text-[12.5px]">
+          {node.name}
+        </span>
 
-        {/* Size badge for files */}
-        {!isFolder && node.size && (
-          <span className="text-[10px] text-muted-foreground/60 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-            {formatSize(node.size)}
+        {isFolder && (
+          <span className="text-[10px] text-muted-foreground/50">
+            {childCount}
           </span>
         )}
       </button>
 
-      {/* Children */}
       {isFolder && isOpen && (
-        <div>
-          {node.children.map((child) => (
-            <TreeItem
-              key={child.path}
-              node={child}
-              depth={depth + 1}
-              expanded={expanded}
-              selected={selected}
-              onToggle={onToggle}
-              onSelect={onSelect}
-            />
-          ))}
+        <div className="relative">
+          <div
+            className="absolute top-0 bottom-0 border-l border-border/40"
+            style={{
+              left: `${depth * 18 + 16}px`,
+            }}
+          />
+
+          <div className="animate-in fade-in duration-150">
+            {node.children.map((child) => (
+              <TreeItem
+                key={child.path}
+                node={child}
+                depth={depth + 1}
+                expanded={expanded}
+                selected={selected}
+                onToggle={onToggle}
+                onSelect={onSelect}
+              />
+            ))}
+          </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 
@@ -226,8 +240,9 @@ export default function FilesTab({ projectId }: { projectId: string }) {
         // Auto-expand root-level folders
         const rootFolders = new Set<string>();
         data.forEach((f) => {
-          const first = f.path.split("/")[0];
-          if (f.path.includes("/")) rootFolders.add(first);
+          const normalizedPath = f.path.replace(/\\/g, "/");
+          const first = normalizedPath.split("/")[0];
+          if (normalizedPath.includes("/")) rootFolders.add(first);
         });
         setExpanded(rootFolders);
       } catch (err) {
@@ -268,7 +283,10 @@ export default function FilesTab({ projectId }: { projectId: string }) {
   const filteredTree = useMemo(() => {
     if (!search.trim()) return tree;
     const q = search.toLowerCase();
-    const matchingFiles = files.filter((f) => f.path.toLowerCase().includes(q));
+    const matchingFiles = files.filter((f) => {
+      const normalizedPath = f.path.replace(/\\/g, "/");
+      return normalizedPath.toLowerCase().includes(q);
+    });
     return buildTree(matchingFiles);
   }, [tree, files, search]);
 
@@ -330,7 +348,7 @@ export default function FilesTab({ projectId }: { projectId: string }) {
   return (
     <div className="flex h-full overflow-hidden">
       {/* ── File Tree Sidebar ── */}
-      <div className="w-64 shrink-0 border-r flex flex-col bg-card/50">
+      <div className="w-80 shrink-0 border-r bg-[#05050a] flex flex-col">
         {/* Search */}
         <div className="p-2 border-b">
           <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-muted/50 border border-border text-sm">
@@ -346,24 +364,46 @@ export default function FilesTab({ projectId }: { projectId: string }) {
         </div>
 
         {/* Tree */}
-        <ScrollArea className="flex-1">
+        <div className="flex-1 overflow-y-auto">
           <div className="py-1.5 px-1">
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest px-3 py-1.5">
               Explorer
             </p>
-            {filteredTree.map((node) => (
-              <TreeItem
-                key={node.path}
-                node={node}
-                depth={0}
-                expanded={expanded}
-                selected={selectedPath}
-                onToggle={toggleFolder}
-                onSelect={setSelectedPath}
-              />
-            ))}
+
+            <div className="sticky top-0 z-10 border-b bg-[#05050a] px-3 py-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-[0.15em] text-[#00ffa3] font-mono">
+                  Repository
+                </span>
+
+                <button
+                  onClick={() => setExpanded(new Set())}
+                  className="text-[10px] text-muted-foreground hover:text-white"
+                >
+                  Collapse All
+                </button>
+              </div>
+
+              <div className="mt-2 text-xs text-muted-foreground">
+                {files.length} files indexed
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-1 py-2">
+              {filteredTree.map((node) => (
+                <TreeItem
+                  key={node.path}
+                  node={node}
+                  depth={0}
+                  expanded={expanded}
+                  selected={selectedPath}
+                  onToggle={toggleFolder}
+                  onSelect={setSelectedPath}
+                />
+              ))}
+            </div>
           </div>
-        </ScrollArea>
+        </div>
 
         {/* File count */}
         <div className="px-3 py-2 border-t text-[10.5px] text-muted-foreground">
@@ -412,8 +452,8 @@ export default function FilesTab({ projectId }: { projectId: string }) {
                 <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
               </div>
             ) : (
-              <ScrollArea className="flex-1">
-                <pre className="p-4 text-[12.5px] leading-6 font-mono whitespace-pre overflow-x-auto">
+              <div className="flex-1 overflow-auto">
+                <pre className="p-4 text-[12.5px] leading-6 font-mono whitespace-pre min-w-max">
                   <code>
                     {fileContent?.split("\n").map((line, i) => (
                       <div
@@ -428,7 +468,7 @@ export default function FilesTab({ projectId }: { projectId: string }) {
                     ))}
                   </code>
                 </pre>
-              </ScrollArea>
+              </div>
             )}
           </>
         ) : (

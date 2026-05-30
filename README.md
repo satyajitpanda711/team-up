@@ -58,7 +58,7 @@
 |---|---|
 | **Framework** | Next.js 16 (App Router, Turbopack) |
 | **Language** | TypeScript 5 |
-| **Frontend** | React 19, Tailwind CSS 4, Radix UI, Lucide Icons |
+| **Frontend** | React 19, Tailwind CSS 4, ShadCN UI, Lucide Icons |
 | **State** | Zustand |
 | **Auth** | NextAuth.js (GitHub OAuth, JWT sessions) |
 | **Database** | MongoDB via Mongoose 9 |

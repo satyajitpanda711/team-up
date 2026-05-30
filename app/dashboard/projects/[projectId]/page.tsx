@@ -8,6 +8,7 @@ import Image from "next/image";
 import InviteTeammateButton from "./components/InviteTeammateButton";
 import ProjectTabs from "./components/ProjectTabs";
 import IngestRepoButton from "./components/IngestRepoButton";
+import DeveloperActivity from "./components/DeveloperActivity";
 
 import User from "@/models/User";
 import Project from "@/models/Project";
@@ -126,6 +127,9 @@ export default async function ProjectPage({
                 </ul>
               )}
             </Card>
+
+            {/* ACTIVITY */}
+            <DeveloperActivity projectId={projectId} />
 
           </aside>
         </div>
