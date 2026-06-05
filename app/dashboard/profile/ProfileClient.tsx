@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signOut } from "next-auth/react";
-import { LogOut, Github, User as UserIcon, Mail, RefreshCw } from "lucide-react";
+import { LogOut, Github, User as UserIcon, Mail, RefreshCw, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { ActivityCalendar } from "react-activity-calendar";
 
 type SafeUser = {
   _id: string;
@@ -20,6 +21,24 @@ type SafeUser = {
 export default function ProfileClient({ user }: { user: SafeUser }) {
   const router = useRouter();
   const [isSyncing, setIsSyncing] = useState(false);
+  const [activityData, setActivityData] = useState<any[]>([]);
+  const [loadingActivity, setLoadingActivity] = useState(true);
+
+  useEffect(() => {
+    const fetchActivity = async () => {
+      try {
+        const res = await fetch("/api/user/commits");
+        if (!res.ok) throw new Error("Failed to fetch activity");
+        const json = await res.json();
+        setActivityData(json.data || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingActivity(false);
+      }
+    };
+    fetchActivity();
+  }, []);
 
   const getInitials = (name: string) => {
     if (!name) return "U";
@@ -71,6 +90,38 @@ export default function ProfileClient({ user }: { user: SafeUser }) {
               <p className="font-medium">{user.email}</p>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Contribution Activity</CardTitle>
+          <CardDescription>Your commit history across all TeamUp repositories.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-center overflow-x-auto py-4">
+          {loadingActivity ? (
+            <div className="flex h-32 items-center justify-center">
+              <Activity className="h-6 w-6 animate-pulse text-muted-foreground" />
+            </div>
+          ) : activityData.length > 0 ? (
+            <div className="min-w-max">
+              <ActivityCalendar 
+                data={activityData} 
+                theme={{
+                  light: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
+                  dark: ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'],
+                }}
+                labels={{
+                  totalCount: '{{count}} commits in the last year',
+                }}
+                colorScheme="dark"
+              />
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground py-8">
+              No commit activity found.
+            </div>
+          )}
         </CardContent>
       </Card>
 
