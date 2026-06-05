@@ -24,32 +24,67 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile } : { user: any; account: any; profile?: any }) {
       await connectDB();
 
-      await User.findOneAndUpdate(
-        { email: user.email },
-        {
+      let dbUser = profile?.id ? await User.findOne({ githubId: profile.id }) : null;
+      if (!dbUser) {
+        dbUser = await User.findOne({ email: user.email });
+      }
+
+      if (dbUser) {
+        dbUser.name = user.name;
+        dbUser.email = user.email;
+        dbUser.image = user.image;
+        dbUser.githubId = profile?.id || dbUser.githubId;
+        dbUser.githubAccessToken = account?.access_token || dbUser.githubAccessToken;
+        await dbUser.save();
+      } else {
+        await User.create({
           name: user.name,
           email: user.email,
           image: user.image,
           githubId: profile?.id,
           githubAccessToken: account?.access_token,
-        },
-        { upsert: true, new: true }
-      );
+        });
+      }
 
       return true;
     },
 
-    async jwt({ token }) {
+    async jwt({ token, user }) {
       await connectDB();
-      const dbUser = await User.findOne({ email: token.email });
-      if (dbUser) {
-        token.id = dbUser._id.toString();
+      
+      // On signin, use email to establish ID
+      if (user) {
+        const dbUser = await User.findOne({ email: user.email });
+        if (dbUser) token.id = dbUser._id.toString();
+      }
+
+      // Keep token synced with DB
+      if (token.id) {
+        const dbUser = await User.findById(token.id);
+        if (dbUser) {
+          token.email = dbUser.email;
+          token.name = dbUser.name;
+          token.picture = dbUser.image;
+        }
+      } else if (token.email) {
+        const dbUser = await User.findOne({ email: token.email });
+        if (dbUser) {
+          token.id = dbUser._id.toString();
+          token.email = dbUser.email;
+          token.name = dbUser.name;
+          token.picture = dbUser.image;
+        }
       }
       return token;
     },
 
     async session({ session, token } : { session: any; token: any }) {
-      session.user.id = token.id as string;
+      if (token.id) {
+        session.user.id = token.id as string;
+        session.user.email = token.email;
+        session.user.name = token.name;
+        session.user.image = token.picture;
+      }
       return session;
     },
   },

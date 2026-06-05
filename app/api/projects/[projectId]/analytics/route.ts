@@ -17,14 +17,15 @@ export async function GET(
       return NextResponse.json({ error: "Repository not found" }, { status: 404 });
     }
 
-    // 1. Commits by day (last 14 days)
+    // 1. Commits by day (last 14 days) & Top Authors
     const fourteenDaysAgo = new Date();
     fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
-    const commits = await Commit.find({
-      repository: repository._id,
-      date: { $gte: fourteenDaysAgo }
-    }).lean();
+    const allCommits = await Commit.find({ repository: repository._id })
+      .sort({ date: -1 })
+      .lean();
+
+    const commits = allCommits.filter((c: any) => new Date(c.date || c.createdAt) >= fourteenDaysAgo);
 
     const commitMap: Record<string, number> = {};
     for (let i = 13; i >= 0; i--) {
@@ -34,11 +35,16 @@ export async function GET(
       commitMap[dateStr] = 0;
     }
 
+    const authorMap: Record<string, number> = {};
+
     commits.forEach((c: any) => {
       const dateStr = new Date(c.date || c.createdAt).toISOString().split("T")[0];
       if (commitMap[dateStr] !== undefined) {
         commitMap[dateStr]++;
       }
+      
+      const author = c.author || "Unknown";
+      authorMap[author] = (authorMap[author] || 0) + 1;
     });
 
     const commitVelocity = Object.keys(commitMap).map((date) => ({
@@ -46,11 +52,26 @@ export async function GET(
       commits: commitMap[date],
     }));
 
-    // 2. Language distribution
+    const topAuthors = Object.keys(authorMap)
+      .map((name) => ({ name, commits: authorMap[name] }))
+      .sort((a, b) => b.commits - a.commits)
+      .slice(0, 5);
+
+    // Recent activity (latest 5 commits)
+    const recentCommits = allCommits.slice(0, 5).map((c: any) => ({
+      sha: c.sha?.substring(0, 7) || "",
+      message: c.message || "",
+      author: c.author || "Unknown",
+      date: c.date || c.createdAt,
+    }));
+
+    // 2. Language distribution & Total Files/Size
     const files = await RepoFile.find({ repository: repository._id }).lean();
     
+    let totalSize = 0;
     const langMap: Record<string, number> = {};
     files.forEach((f: any) => {
+      totalSize += f.size || 0;
       if (f.language) {
         langMap[f.language] = (langMap[f.language] || 0) + 1;
       }
@@ -63,7 +84,12 @@ export async function GET(
 
     return NextResponse.json({
       commitVelocity,
-      languageDistribution
+      languageDistribution,
+      topAuthors,
+      recentCommits,
+      totalCommits: allCommits.length,
+      totalFiles: files.length,
+      totalSize
     });
 
   } catch (error) {

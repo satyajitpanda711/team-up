@@ -33,9 +33,13 @@ export const GET = async (
 
     const messages = await AskRepoMessages.find({
       repository: repository._id,
-    }).sort({ createdAt: 1 }).limit(3).skip(skip);
+    })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .skip(skip)
+      .lean();
 
-    return NextResponse.json(messages);
+    return NextResponse.json(messages.reverse());
   } catch (error) {
     console.error("Error fetching AI messages:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -76,6 +80,10 @@ export const POST = async (
     await connectDB();
 
     const result = await askRepo(projectId, question.trim(), userEmail);
+
+    if(!result) {
+       return NextResponse.json({ error: "Failed to get answer" }, { status: 500 });
+    }
 
     return NextResponse.json({
       answer: result.answer,
