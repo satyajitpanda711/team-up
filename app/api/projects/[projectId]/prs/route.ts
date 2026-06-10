@@ -7,7 +7,7 @@ import User from "@/models/User";
 
 export async function GET(
     _req: NextRequest,
-    { params }: { params: { projectId: string } }
+    { params }: { params: Promise<{ projectId: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -20,7 +20,8 @@ export async function GET(
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
-        const pullRequests = await PullRequest.find({ projectId: params.projectId })
+        const { projectId } = await params;
+        const pullRequests = await PullRequest.find({ projectId })
             .sort({ createdAt: -1 })
             .limit(20)
             .lean();
