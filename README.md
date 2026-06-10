@@ -118,6 +118,62 @@ MongoDB stores:
 
 ---
 
+## Architecture Diagram
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│                           Client                             │
+│                                                             │
+│  Next.js 16 + React 19 + Tailwind CSS 4                    │
+│                                                             │
+│  ┌──────────┐  ┌────────────┐  ┌────────────┐  ┌─────────┐ │
+│  │ Landing  │  │ Dashboard  │  │ Workspace  │  │ AskRepo │ │
+│  │   Page   │  │    Page    │  │   Module   │  │   AI    │ │
+│  └──────────┘  └────────────┘  └────────────┘  └─────────┘ │
+└───────────────────────┬──────────────────────────────────────┘
+                        │
+         HTTP/API Routes │ WebSocket
+                        │
+┌───────────────────────▼──────────────────────────────────────┐
+│                    Express Server                            │
+│                                                             │
+│  ┌────────────────────┐   ┌──────────────────────────────┐  │
+│  │ Next.js API Layer  │   │     Socket.IO Server         │  │
+│  │                    │   │   Real-Time Team Chat        │  │
+│  └────────────────────┘   └──────────────────────────────┘  │
+└───────────────────────┬──────────────────────────────────────┘
+                        │
+                        │
+┌───────────────────────▼──────────────────────────────────────┐
+│                         MongoDB                              │
+│                                                             │
+│  Users • Projects • Repository Files • Commits             │
+│  Pull Requests • Issues • Messages • AI Reports            │
+└───────────────────────┬──────────────────────────────────────┘
+                        │
+                        │
+┌───────────────────────▼──────────────────────────────────────┐
+│                    External Services                         │
+│                                                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌───────────────────┐ │
+│  │  GitHub API  │  │   Groq API   │  │     NextAuth      │ │
+│  │ Repo Data    │  │ LLaMA 3.3    │  │ GitHub OAuth/JWT  │ │
+│  └──────────────┘  └──────────────┘  └───────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Flow Overview
+
+1. Users interact with the Next.js frontend.
+2. API requests are handled through the Express + Next.js backend.
+3. Real-time communication is managed using Socket.IO.
+4. Repository and project data are stored in MongoDB.
+5. GitHub API provides repository metadata and source data.
+6. Groq LLaMA 3.3 powers repository analysis and AskRepo AI responses.
+7. NextAuth manages authentication and session handling.
+
+---
+
 ## Main Workflows
 
 ### Intelligence Report Generation
