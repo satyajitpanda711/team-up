@@ -25,6 +25,7 @@ export async function POST() {
         Authorization: `Bearer ${dbUser.githubAccessToken}`,
         Accept: "application/vnd.github.v3+json",
       },
+      cache: "no-store",
     });
 
     if (!res.ok) {
@@ -44,6 +45,7 @@ export async function POST() {
           Authorization: `Bearer ${dbUser.githubAccessToken}`,
           Accept: "application/vnd.github.v3+json",
         },
+        cache: "no-store",
       });
       if (emailRes.ok) {
         const emails = await emailRes.json();

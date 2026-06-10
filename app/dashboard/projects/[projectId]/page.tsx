@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { connectDB } from "@/lib/db";
 import { Types } from "mongoose";
 import Image from "next/image";
+import Link from "next/link";
+import { Sparkles, Fingerprint, Users, Github } from "lucide-react";
 
 import InviteTeammateButton from "./components/InviteTeammateButton";
 import ProjectTabs from "./components/ProjectTabs";
@@ -47,22 +49,37 @@ export default async function ProjectPage({
 
         {/* HEADER */}
         <div className="border-b backdrop-blur-xl">
-          <div className="mx-auto max-w-7xl px-6 py-4 flex justify-between items-center">
-            <div>
-              <h1 className="text-lg font-semibold">{project.name}</h1>
-              <p className="text-xs">Project workspace</p>
+          <div className="mx-auto max-w-7xl px-6 py-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                <Github className="w-6 h-6 text-indigo-500" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
+                <p className="text-sm text-muted-foreground flex items-center gap-2 mt-0.5">
+                  Project Workspace
+                  {project.githubRepoUrl && (
+                    <>
+                      <span>•</span>
+                      <a href={project.githubRepoUrl} target="_blank" className="hover:text-foreground transition-colors flex items-center gap-1">
+                        <Github className="w-3 h-3" />
+                        Repository linked
+                      </a>
+                    </>
+                  )}
+                </p>
+              </div>
             </div>
 
 
             <div className="flex gap-3">
-              <IngestRepoButton projectId={projectId} repoUrl={project.githubRepoUrl} />
-              {project.githubRepoUrl && (
-                <Button size="sm" asChild>
-                  <a href={project.githubRepoUrl} target="_blank">
-                    GitHub
-                  </a>
+              <Link href={`/dashboard/projects/${projectId}/intelligence`}>
+                <Button variant="default" className="gap-2 shadow-lg shadow-indigo-500/20 bg-indigo-600 hover:bg-indigo-700 text-white border-0">
+                  <Sparkles className="w-4 h-4" />
+                  Intelligence Report
                 </Button>
-              )}
+              </Link>
+              <IngestRepoButton projectId={projectId} repoUrl={project.githubRepoUrl} />
               <ThemeToggleButton />
             </div>
           </div>
@@ -86,42 +103,50 @@ export default async function ProjectPage({
           <aside className="space-y-6">
 
             {/* META */}
-            <Card className="p-5 border">
-              <h2 className="text-xs uppercase tracking-wider">
-                Project Metadata
-              </h2>
-
-              <code className="block mt-3 text-xs px-2 py-1 rounded break-all">
+            <Card className="p-5 border bg-card/40 backdrop-blur-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <Fingerprint className="w-4 h-4 text-indigo-500" />
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Project ID
+                </h2>
+              </div>
+              <code className="block mt-3 text-xs px-3 py-2 rounded-md bg-muted/50 border border-border/50 break-all font-mono text-muted-foreground">
                 {projectId}
               </code>
             </Card>
 
             {/* TEAM */}
-            <Card className="p-5 border">
+            <Card className="p-5 border bg-card/40 backdrop-blur-sm">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xs uppercase tracking-wider">
-                  Collaborators
-                </h2>
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-emerald-500" />
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Team
+                  </h2>
+                </div>
                 <InviteTeammateButton />
               </div>
 
               {contributors.length === 0 ? (
-                <p className="text-sm">No teammates yet</p>
+                <div className="flex flex-col items-center justify-center py-6 text-center border rounded-lg border-dashed bg-muted/30">
+                  <Users className="w-6 h-6 text-muted-foreground/40 mb-2" />
+                  <p className="text-xs text-muted-foreground">No teammates yet</p>
+                </div>
               ) : (
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {contributors.map((c: any) => (
                     <li
                       key={c.id}
-                      className="flex items-center gap-3 p-2 rounded-md transition"
+                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition border border-transparent hover:border-border/50 group"
                     >
                       <Image
                         src={c.image}
                         alt={c.name}
-                        width={28}
-                        height={28}
-                        className="rounded-full border"
+                        width={32}
+                        height={32}
+                        className="rounded-full border border-border group-hover:border-indigo-500/30 transition-colors"
                       />
-                      <span className="text-sm">{c.name}</span>
+                      <span className="text-sm font-medium">{c.name}</span>
                     </li>
                   ))}
                 </ul>
@@ -129,7 +154,12 @@ export default async function ProjectPage({
             </Card>
 
             {/* ACTIVITY */}
-            <DeveloperActivity projectId={projectId} />
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 rounded-xl blur-xl"></div>
+              <div className="relative">
+                <DeveloperActivity projectId={projectId} />
+              </div>
+            </div>
 
           </aside>
         </div>

@@ -119,20 +119,11 @@ const askRepo = async (
   /* =========================
      RETRIEVE RELEVANT FILES
   ========================= */
-  console.log(
-    "Fetching relevant files for repository:",
-    repository._id
-  );
   const relevantFiles =
     await retrieveRelevantFiles(
       repository._id.toString(),
       question
     );
-
-  console.log(
-    "Relevant files:",
-    relevantFiles.map((f: any) => f.path)
-  );
 
   /* =========================
      GENERAL REPO CONTEXT
@@ -156,8 +147,6 @@ ${chunk.content}
 `
     )
     .join("\n\n");
-
-  console.log("Retrival Context: ", relevantContext);
 
   /* =========================
      CHAT HISTORY

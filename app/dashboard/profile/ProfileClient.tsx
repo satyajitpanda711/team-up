@@ -18,8 +18,9 @@ type SafeUser = {
   hasGithub: boolean;
 };
 
-export default function ProfileClient({ user }: { user: SafeUser }) {
+export default function ProfileClient({ user: initialUser }: { user: SafeUser }) {
   const router = useRouter();
+  const [user, setUser] = useState(initialUser);
   const [isSyncing, setIsSyncing] = useState(false);
   const [activityData, setActivityData] = useState<any[]>([]);
   const [loadingActivity, setLoadingActivity] = useState(true);
@@ -53,6 +54,14 @@ export default function ProfileClient({ user }: { user: SafeUser }) {
       
       if (!res.ok) throw new Error(data.error || "Failed to sync");
       
+      // Update local state immediately to reflect changes
+      setUser((prev) => ({
+        ...prev,
+        name: data.user.name,
+        email: data.user.email,
+        image: data.user.image,
+      }));
+
       toast.success("Profile successfully synced with GitHub!");
       router.refresh();
     } catch (err: any) {

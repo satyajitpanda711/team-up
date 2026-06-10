@@ -90,11 +90,20 @@ function buildTree(files: RepoFile[]): TreeNode[] {
           children: [],
         };
         current.push(existing);
+      } else if (!isFile) {
+        // If we discover this node has children later, it MUST be a folder
+        existing.type = "folder";
+        existing.language = undefined;
+        existing.size = undefined;
       }
 
       current = existing.children;
     }
   }
+
+  // Remove any nodes that have no children and are marked as "folder"
+  // (This handles cases where the DB might have returned a dir but it was empty)
+  // Or just let them be empty folders.
 
   // Sort: folders first, then alphabetical
   const sortNodes = (nodes: TreeNode[]): TreeNode[] => {
@@ -348,7 +357,7 @@ export default function FilesTab({ projectId }: { projectId: string }) {
   return (
     <div className="flex h-full overflow-hidden">
       {/* ── File Tree Sidebar ── */}
-      <div className="w-80 shrink-0 border-r bg-[#05050a] flex flex-col">
+      <div className="w-80 shrink-0 border-r bg-primary/10 flex flex-col">
         {/* Search */}
         <div className="p-2 border-b">
           <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-muted/50 border border-border text-sm">
@@ -364,13 +373,13 @@ export default function FilesTab({ projectId }: { projectId: string }) {
         </div>
 
         {/* Tree */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-card/90">
           <div className="py-1.5 px-1">
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest px-3 py-1.5">
               Explorer
             </p>
 
-            <div className="sticky top-0 z-10 border-b bg-[#05050a] px-3 py-2">
+            <div className="sticky top-0 z-10 border-b  px-3 py-2">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] uppercase tracking-[0.15em] text-[#00ffa3] font-mono">
                   Repository

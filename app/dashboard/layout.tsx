@@ -89,21 +89,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </nav>
 
           {/* User footer */}
-          <div className="p-2.5 border-t shrink-0 space-y-0.5">
-            <button className="flex w-full items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12px] text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-150">
-              <LogOut className="w-4 h-4 shrink-0" />
-              Sign out
-            </button>
-            <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer hover:bg-muted transition-all">
-              <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-[11px] font-semibold text-primary-foreground shrink-0">
-                JD
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[12px] font-medium text-foreground truncate">James Dalton</p>
-              </div>
-              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-            </div>
-          </div>
+          
         </ResizablePanel>
 
         {/* ── Drag handle ── */}
@@ -127,16 +113,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-sm" />
                   Workspace active
                 </div>
-                <button className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent transition-all">
-                  <Bell className="w-4 h-4" />
-                </button>
-                <button className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent transition-all">
-                  <Search className="w-4 h-4" />
-                </button>
                 <ThemeToggleButton />
-                <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-[11px] font-semibold text-primary-foreground cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all">
-                  JD
-                </div>
               </div>
             </header>
 

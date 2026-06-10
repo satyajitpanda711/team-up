@@ -7,15 +7,24 @@
   <img src="https://img.shields.io/badge/Groq-LLaMA_3.3-FF6B35?style=for-the-badge" />
 </p>
 
-# 🚀 RepoIntel — AI-Powered Repository Intelligence
+<h1 align="center">🚀 RepoIntel — AI-Powered Repository Intelligence</h1>
 
-**RepoIntel** is a collaborative developer platform that connects to your GitHub repositories and provides AI-powered code understanding, real-time team chat, and full project management — all in one place.
+<p align="center">
+  <strong>RepoIntel</strong> is a collaborative developer platform that connects to your GitHub repositories and provides AI-powered code understanding, real-time team chat, and full project management — all wrapped in a stunning, premium UI.
+</p>
 
-> _Your codebase, finally understood._
+<p align="center">
+  <em>Your codebase, finally understood.</em>
+</p>
 
 ---
 
 ## ✨ Features
+
+### ⚡ Intelligence Report (The "Wow" Moment)
+- **Cinematic Repository Analysis** — Generate a comprehensive, beautiful architectural overview of any codebase in seconds.
+- **Persistent History** — Intelligence reports are saved to your database instantly. Browse through past architectural analyses without re-running the prompt.
+- **Deep Insights** — Extracts the Tech Stack, Timeline, Architectural Style, Risks, and Onboarding Notes seamlessly.
 
 ### 🔗 GitHub Integration
 - **One-click OAuth** — Sign in with GitHub and start instantly
@@ -34,16 +43,16 @@
 - Persistent message history stored in MongoDB
 
 ### 📊 Project Dashboard
-- Aggregated stats: total projects, commits, issues, and pull requests
-- Recent commit activity feed
-- Quick-access project cards with member counts and last-updated timestamps
+- **Glassmorphic Design** — Stunning, dynamic UI with glowing gradients and fluid transitions.
+- **Aggregated stats** — Total projects, commits, issues, and pull requests
+- **Recent commit activity feed** — Easily monitor team velocity
+- **Quick-access project cards** — Beautiful grid layout with member counts and last-updated timestamps
 
 ### 📁 Repository Explorer
 - **File tree browser** — Navigate your repo's structure directly in the app
 - **Commits tab** — Browse commit history with author, message, and timestamp
 - **Pull Requests tab** — View all PRs with status, title, and merge state
 - **Issues tab** — Track open/closed issues with labels
-- **Questions tab** — Team Q&A board with answer workflows and status badges
 
 ### 👥 Team Collaboration
 - **Invite teammates** by email with role-based access (`owner`, `developer`)
@@ -94,7 +103,7 @@
 │                   MongoDB                         │
 │  Users · Projects · Repositories · RepoFiles     │
 │  Commits · PRs · Issues · Messages · Questions   │
-│  AskRepoMessages                                 │
+│  AskRepoMessages · IntelligenceReports           │
 └──────────────────────┬───────────────────────────┘
                        │
 ┌──────────────────────▼───────────────────────────┐
@@ -133,7 +142,7 @@ npm install
 
 ### 3. Configure environment variables
 
-Create a `.env` file in the project root:
+Create a `.env.local` file in the project root:
 
 ```env
 # MongoDB
@@ -163,7 +172,7 @@ The app starts at **http://localhost:3000** with Turbopack for fast HMR.
 
 ```bash
 docker build -t repointel .
-docker run -p 3000:3000 --env-file .env repointel
+docker run -p 3000:3000 --env-file .env.local repointel
 ```
 
 ---
@@ -179,10 +188,7 @@ team-up/
 │   │   │   └── [projectId]/
 │   │   │       ├── askRepo/    # RAG-powered AI Q&A
 │   │   │       ├── commits/    # Commit history
-│   │   │       ├── files/      # File tree
-│   │   │       ├── issues/     # GitHub issues
-│   │   │       ├── prs/        # Pull requests
-│   │   │       ├── questions/  # Team Q&A
+│   │   │       ├── intelligence/# Cinematic Intelligence Report Generator
 │   │   │       └── messages/   # Chat messages
 │   │   └── repos/
 │   │       └── ingest/         # GitHub repo sync engine
@@ -206,12 +212,9 @@ team-up/
 │   ├── Project.ts
 │   ├── Repository.ts
 │   ├── RepoFile.ts
-│   ├── Commit.ts
-│   ├── PullRequest.ts
-│   ├── Issue.ts
-│   ├── Message.ts
-│   ├── Question.ts
-│   └── AskRepoMessages.ts
+│   ├── IntelligenceReport.ts
+│   ├── AskRepoMessages.ts
+│   └── ...
 ├── store/
 │   └── useChatStore.ts         # Zustand store for Socket.IO chat
 ├── server.ts                   # Custom Express + Socket.IO server
@@ -223,12 +226,12 @@ team-up/
 
 ## 🔑 Key Workflows
 
-### Repository Ingestion Flow
-1. User clicks **"Ingest GitHub Repo"** on the project page
-2. Client-side `fetch` hits `/api/repos/ingest` with `projectId` + `repoUrl`
-3. Server fetches repo metadata, file tree, README, commits, PRs, and issues from the GitHub API
-4. Source code is fetched for key file types (`.ts`, `.tsx`, `.js`, `.jsx`, `.md`, `.json`) and stored in MongoDB
-5. UI auto-refreshes to display the newly synced data across all tabs
+### Intelligence Report Generation (The "Wow" Factor)
+1. User clicks **"Intelligence Report"** on their project dashboard.
+2. A cinematic terminal animation begins while the app securely queries the database for metadata and commits.
+3. The context is passed to **Groq LLaMA 3.3 70B**, enforcing a structured JSON output.
+4. The generated architectural analysis is saved to MongoDB.
+5. The UI beautifully renders the JSON into actionable onboarding insights and project timelines.
 
 ### AskRepo RAG Pipeline
 1. User asks a question in the **AskRepo** chat interface

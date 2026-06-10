@@ -28,13 +28,13 @@ export default function ProjectTabs({ projectId }: { projectId: string }) {
       <TabsList className="grid grid-cols-8 rounded-none border-b w-full h-11">
         {[
           ["repo", "Repo", FolderTree],
+          ["ai-assistant", "AskRepo", Bot],
           ["commits", "Commits", GitCommit],
           ["prs", "PRs", GitPullRequest],
           ["issues", "Issues", AlertCircle],
           ["analytics", "Analytics", Activity],
           ["questions", "Questions", MessageSquare],
           ["chat", "Chat", MessageSquare],
-          ["ai-assistant", "AskRepo", Bot],
         ].map(([val, label, Icon]: any) => (
           <TabsTrigger
             key={val}

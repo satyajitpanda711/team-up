@@ -286,6 +286,20 @@ export async function POST(req: NextRequest) {
 
             remotePaths.add(node.path);
 
+            const existingFile = await RepoFile.findOne({
+                repository: repository._id,
+                path: node.path
+            }).select("lastCommitSha");
+
+            if (existingFile && existingFile.lastCommitSha === node.sha) {
+                // File hasn't changed, just ensure it's not marked deleted
+                await RepoFile.updateOne(
+                    { _id: existingFile._id },
+                    { $set: { deletedAt: null } }
+                );
+                continue;
+            }
+
             const shouldStoreContent =
                 node.type === "blob" &&
                 importantExtensions.some((ext) =>
@@ -295,8 +309,6 @@ export async function POST(req: NextRequest) {
             let content = "";
 
             if (shouldStoreContent) {
-                console.log("Fetching content:", node.path);
-
                 const fetchedContent = await fetchFileContent(
                     owner,
                     repoName,
@@ -319,10 +331,8 @@ export async function POST(req: NextRequest) {
                     path: node.path,
                     type: node.type === "tree" ? "dir" : "file",
                     size: node.size ?? 0,
-
-                    // RAG content
+                    lastCommitSha: node.sha,
                     content,
-
                     deletedAt: null,
                 },
                 {
