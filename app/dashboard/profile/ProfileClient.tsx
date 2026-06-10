@@ -102,7 +102,7 @@ export default function ProfileClient({ user: initialUser }: { user: SafeUser })
         </CardContent>
       </Card>
 
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle>Contribution Activity</CardTitle>
           <CardDescription>Your commit history across all RepoIntel repositories.</CardDescription>
@@ -132,7 +132,7 @@ export default function ProfileClient({ user: initialUser }: { user: SafeUser })
             </div>
           )}
         </CardContent>
-      </Card>
+      </Card> */}
 
       <Card>
         <CardHeader>

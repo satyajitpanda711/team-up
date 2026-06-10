@@ -79,11 +79,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               >
                 <Icon className="w-4 h-4 shrink-0" />
                 <span className="flex-1">{label}</span>
-                {badge && (
-                  <span className="text-[10px] bg-primary/15 text-primary px-1.5 py-0.5 rounded-full">
-                    {badge}
-                  </span>
-                )}
+                
               </Link>
             ))}
           </nav>
