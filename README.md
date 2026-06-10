@@ -1,269 +1,209 @@
-<p align="center">
-  <img src="https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js" />
-  <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react" />
-  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript" />
-  <img src="https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=for-the-badge&logo=mongodb" />
-  <img src="https://img.shields.io/badge/Socket.IO-Realtime-010101?style=for-the-badge&logo=socket.io" />
-  <img src="https://img.shields.io/badge/Groq-LLaMA_3.3-FF6B35?style=for-the-badge" />
-</p>
+# RepoIntel — AI-Powered Repository Intelligence
 
-<h1 align="center">🚀 RepoIntel — AI-Powered Repository Intelligence</h1>
+**RepoIntel** is a collaborative developer platform that connects with GitHub repositories and provides AI-powered code understanding, real-time team communication, and project management in a single workspace. 
 
-<p align="center">
-  <strong>RepoIntel</strong> is a collaborative developer platform that connects to your GitHub repositories and provides AI-powered code understanding, real-time team chat, and full project management — all wrapped in a stunning, premium UI.
-</p>
-
-<p align="center">
-  <em>Your codebase, finally understood.</em>
-</p>
+The platform helps developers understand complex codebases faster through repository analysis, contextual AI assistance, and collaborative tools.
 
 ---
 
-## ✨ Features
+## Features
 
-### ⚡ Intelligence Report (The "Wow" Moment)
-- **Cinematic Repository Analysis** — Generate a comprehensive, beautiful architectural overview of any codebase in seconds.
-- **Persistent History** — Intelligence reports are saved to your database instantly. Browse through past architectural analyses without re-running the prompt.
-- **Deep Insights** — Extracts the Tech Stack, Timeline, Architectural Style, Risks, and Onboarding Notes seamlessly.
+### Intelligence Reports
 
-### 🔗 GitHub Integration
-- **One-click OAuth** — Sign in with GitHub and start instantly
-- **Repository Ingestion** — Sync your repo's file tree, commits, PRs, and issues with a single click
-- **File Content Storage** — Automatically fetches and stores source code for `.ts`, `.tsx`, `.js`, `.jsx`, `.md`, and `.json` files for AI context
+* Generate detailed architectural overviews of repositories
+* Save and access previous reports without regenerating them
+* Extract insights such as:
 
-### 🤖 AskRepo AI (RAG-Powered)
-- **Ask anything about your codebase** in plain English
-- Uses **Retrieval-Augmented Generation (RAG)** with keyword-based chunking and retrieval to ground answers in actual source code
-- Powered by **Groq + LLaMA 3.3 70B** for fast, high-quality responses
-- Maintains conversation history for contextual follow-ups
+  * Tech stack
+  * Architecture style
+  * Development timeline
+  * Risks and onboarding notes
 
-### 💬 Real-Time Team Chat
-- **Socket.IO-powered** live messaging scoped per project
-- Instant message delivery with sender avatars and timestamps
-- Persistent message history stored in MongoDB
+### GitHub Integration
 
-### 📊 Project Dashboard
-- **Glassmorphic Design** — Stunning, dynamic UI with glowing gradients and fluid transitions.
-- **Aggregated stats** — Total projects, commits, issues, and pull requests
-- **Recent commit activity feed** — Easily monitor team velocity
-- **Quick-access project cards** — Beautiful grid layout with member counts and last-updated timestamps
+* GitHub OAuth authentication
+* Repository ingestion with a single click
+* Sync:
 
-### 📁 Repository Explorer
-- **File tree browser** — Navigate your repo's structure directly in the app
-- **Commits tab** — Browse commit history with author, message, and timestamp
-- **Pull Requests tab** — View all PRs with status, title, and merge state
-- **Issues tab** — Track open/closed issues with labels
+  * Repository structure
+  * Commits
+  * Pull requests
+  * Issues
+* Store source files for AI context
 
-### 👥 Team Collaboration
-- **Invite teammates** by email with role-based access (`owner`, `developer`)
-- Collaborator sidebar with profile avatars
-- Per-project member management
+### AskRepo AI
+
+* Ask questions about the codebase in natural language
+* Uses Retrieval-Augmented Generation (RAG)
+* Retrieves relevant code chunks before generating answers
+* Powered by Groq and LLaMA 3.3 70B
+* Maintains conversation history for follow-up queries
+
+### Real-Time Team Chat
+
+* Live messaging using Socket.IO
+* Project-specific chat rooms
+* Persistent message history stored in MongoDB
+
+### Project Dashboard
+
+* Overview of projects, commits, issues, and pull requests
+* Recent activity feed
+* Quick-access project cards
+* Responsive and modern interface
+
+### Repository Explorer
+
+* Browse repository file structure
+* View:
+
+  * Commits
+  * Pull requests
+  * Issues
+* Access repository details directly inside the app
+
+### Team Collaboration
+
+* Invite collaborators by email
+* Role-based access:
+
+  * Owner
+  * Developer
+* Team member management per project
 
 ---
 
-## 🏗️ Tech Stack
+## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| **Framework** | Next.js 16 (App Router, Turbopack) |
-| **Language** | TypeScript 5 |
-| **Frontend** | React 19, Tailwind CSS 4, ShadCN UI, Lucide Icons |
-| **State** | Zustand |
-| **Auth** | NextAuth.js (GitHub OAuth, JWT sessions) |
-| **Database** | MongoDB via Mongoose 9 |
-| **Realtime** | Socket.IO (Express + custom HTTP server) |
-| **AI / LLM** | Groq SDK → LLaMA 3.3 70B Versatile |
-| **RAG Pipeline** | Custom chunking (`lib/chunking.ts`) + keyword retrieval (`lib/retrieve.ts`) |
-| **Notifications** | Sonner toast library |
-| **Deployment** | Docker-ready (`Dockerfile` included) |
+| Layer                  | Technology                          |
+| ---------------------- | ----------------------------------- |
+| Framework              | Next.js 16                          |
+| Language               | TypeScript 5                        |
+| Frontend               | React 19, Tailwind CSS 4, ShadCN UI |
+| State Management       | Zustand                             |
+| Authentication         | NextAuth.js                         |
+| Database               | MongoDB with Mongoose               |
+| Realtime Communication | Socket.IO                           |
+| AI Model               | Groq LLaMA 3.3 70B                  |
+| Deployment             | Docker                              |
 
 ---
 
-## 📐 Architecture
+## Architecture Overview
 
+### Frontend
+
+Built with Next.js App Router and React 19 for a modern and responsive user experience.
+
+### Backend
+
+Uses a custom Express server integrated with Socket.IO for API handling and real-time communication.
+
+### Database
+
+MongoDB stores:
+
+* Users
+* Projects
+* Repository data
+* Messages
+* AI reports
+* Questions and responses
+
+### External Services
+
+* GitHub API for repository data
+* Groq API for AI processing
+* NextAuth for authentication
+
+---
+
+## Main Workflows
+
+### Intelligence Report Generation
+
+1. User requests a repository analysis
+2. Repository metadata and commits are collected
+3. Context is sent to Groq LLaMA 3.3 70B
+4. Structured analysis is generated
+5. Report is saved and displayed in the UI
+
+### AskRepo RAG Workflow
+
+1. User asks a repository-related question
+2. Relevant file chunks are retrieved
+3. Context is assembled with commits and README data
+4. AI generates a grounded response
+5. Response is stored and shown in chat
+
+### Real-Time Chat Workflow
+
+1. Users connect through Socket.IO
+2. Messages are broadcast inside project rooms
+3. Messages are stored in MongoDB for persistence
+
+---
+
+## Project Structure
+
+```bash
+app/
+├── api/
+├── dashboard/
+├── page.tsx
+
+lib/
+├── auth.ts
+├── db.ts
+├── chunking.ts
+├── retrieve.ts
+
+models/
+store/
+server.ts
+Dockerfile
 ```
-┌──────────────────────────────────────────────────┐
-│                    Client                        │
-│  Next.js App Router + React 19 + Tailwind CSS    │
-│  ┌────────┐ ┌────────┐ ┌─────────┐ ┌──────────┐ │
-│  │ Landing│ │Dashboard│ │ Project │ │ AskRepo  │ │
-│  │  Page  │ │  Page   │ │Workspace│ │   Chat   │ │
-│  └────────┘ └────────┘ └─────────┘ └──────────┘ │
-└──────────────┬───────────────────────┬───────────┘
-               │ HTTP / API Routes     │ WebSocket
-┌──────────────▼───────────────────────▼───────────┐
-│              Custom Express Server               │
-│  ┌──────────────────┐  ┌───────────────────────┐ │
-│  │  Next.js Handler  │  │   Socket.IO Server    │ │
-│  │  (API Routes)     │  │   (Real-time Chat)    │ │
-│  └────────┬─────────┘  └───────────┬───────────┘ │
-└───────────┼─────────────────────────┼────────────┘
-            │                         │
-┌───────────▼─────────────────────────▼────────────┐
-│                   MongoDB                         │
-│  Users · Projects · Repositories · RepoFiles     │
-│  Commits · PRs · Issues · Messages · Questions   │
-│  AskRepoMessages · IntelligenceReports           │
-└──────────────────────┬───────────────────────────┘
-                       │
-┌──────────────────────▼───────────────────────────┐
-│               External Services                   │
-│  ┌─────────────┐  ┌──────────┐  ┌──────────────┐ │
-│  │ GitHub API   │  │ Groq API │  │ NextAuth     │ │
-│  │ (repos,tree, │  │ (LLaMA   │  │ (OAuth,JWT)  │ │
-│  │  commits,PRs)│  │  3.3 70B)│  │              │ │
-│  └─────────────┘  └──────────┘  └──────────────┘ │
-└──────────────────────────────────────────────────┘
-```
 
 ---
 
-## 🚀 Getting Started
+## Setup Instructions
 
 ### Prerequisites
 
-- **Node.js** ≥ 20
-- **MongoDB** instance (local or Atlas)
-- **GitHub OAuth App** ([create one here](https://github.com/settings/developers))
-- **Groq API Key** ([get one here](https://console.groq.com))
+* Node.js 20+
+* MongoDB
+* GitHub OAuth App
+* Groq API Key
 
-### 1. Clone the repository
+### Installation
 
 ```bash
 git clone https://github.com/satyajitpanda711/team-up.git
 cd team-up
-```
-
-### 2. Install dependencies
-
-```bash
 npm install
 ```
 
-### 3. Configure environment variables
-
-Create a `.env.local` file in the project root:
+### Environment Variables
 
 ```env
-# MongoDB
-MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/<db>
+MONGODB_URI=
+NEXTAUTH_URL=
+NEXTAUTH_SECRET=
 
-# NextAuth
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-random-secret-string
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
 
-# GitHub OAuth
-GITHUB_CLIENT_ID=your-github-client-id
-GITHUB_CLIENT_SECRET=your-github-client-secret
-
-# Groq (for AskRepo AI)
-GROQ_API=your-groq-api-key
+GROQ_API=
 ```
 
-### 4. Run the development server
+### Run Development Server
 
 ```bash
 npm run dev
 ```
 
-The app starts at **http://localhost:3000** with Turbopack for fast HMR.
-
-### 5. (Optional) Docker
-
-```bash
-docker build -t repointel .
-docker run -p 3000:3000 --env-file .env.local repointel
-```
-
 ---
 
-## 📁 Project Structure
+## Conclusion
 
-```
-team-up/
-├── app/
-│   ├── api/                    # Next.js API routes
-│   │   ├── auth/               # NextAuth endpoints
-│   │   ├── projects/           # CRUD, questions, commits, PRs, issues
-│   │   │   └── [projectId]/
-│   │   │       ├── askRepo/    # RAG-powered AI Q&A
-│   │   │       ├── commits/    # Commit history
-│   │   │       ├── intelligence/# Cinematic Intelligence Report Generator
-│   │   │       └── messages/   # Chat messages
-│   │   └── repos/
-│   │       └── ingest/         # GitHub repo sync engine
-│   ├── dashboard/              # Dashboard pages & components
-│   │   ├── components/         # Dashboard UI
-│   │   └── projects/
-│   │       └── [projectId]/    # Project workspace
-│   │           └── components/
-│   │               └── tabs/   # Repo, Commits, PRs, Issues, Chat, Q&A, AskRepo
-│   └── page.tsx                # Landing page
-├── components/ui/              # shadcn/ui components
-├── lib/
-│   ├── auth.ts                 # NextAuth configuration
-│   ├── db.ts                   # MongoDB connection
-│   ├── chunking.ts             # Text chunking for RAG
-│   ├── retrieve.ts             # Keyword-based file retrieval
-│   └── services/
-│       └── github.ts           # GitHub API client
-├── models/                     # Mongoose schemas
-│   ├── User.ts
-│   ├── Project.ts
-│   ├── Repository.ts
-│   ├── RepoFile.ts
-│   ├── IntelligenceReport.ts
-│   ├── AskRepoMessages.ts
-│   └── ...
-├── store/
-│   └── useChatStore.ts         # Zustand store for Socket.IO chat
-├── server.ts                   # Custom Express + Socket.IO server
-├── Dockerfile                  # Docker deployment
-└── package.json
-```
-
----
-
-## 🔑 Key Workflows
-
-### Intelligence Report Generation (The "Wow" Factor)
-1. User clicks **"Intelligence Report"** on their project dashboard.
-2. A cinematic terminal animation begins while the app securely queries the database for metadata and commits.
-3. The context is passed to **Groq LLaMA 3.3 70B**, enforcing a structured JSON output.
-4. The generated architectural analysis is saved to MongoDB.
-5. The UI beautifully renders the JSON into actionable onboarding insights and project timelines.
-
-### AskRepo RAG Pipeline
-1. User asks a question in the **AskRepo** chat interface
-2. The question is tokenized into keywords
-3. `retrieveRelevantFiles()` scores stored file chunks by keyword overlap and path relevance
-4. Top 6 chunks + README + recent commits are assembled into a context prompt
-5. Prompt is sent to **Groq LLaMA 3.3 70B** for generation
-6. Answer is saved to `AskRepoMessages` and streamed back to the UI
-
-### Real-Time Chat
-1. Client connects via **Socket.IO** with `projectId` + `userEmail` auth
-2. Messages are broadcast to all users in the same project room
-3. Messages are persisted in MongoDB and loaded on reconnect
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
----
-
-<p align="center">
-  Built with ☕ and <code>Next.js</code> by <a href="https://github.com/satyajitpanda711">@satyajitpanda711</a>
-</p>
+RepoIntel combines repository analysis, AI-assisted development, and team collaboration into a unified platform. It helps developers understand large codebases, communicate efficiently, and manage projects with contextual AI support.
