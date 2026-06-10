@@ -105,7 +105,7 @@ export default function ProfileClient({ user: initialUser }: { user: SafeUser })
       <Card>
         <CardHeader>
           <CardTitle>Contribution Activity</CardTitle>
-          <CardDescription>Your commit history across all TeamUp repositories.</CardDescription>
+          <CardDescription>Your commit history across all RepoIntel repositories.</CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center overflow-x-auto py-4">
           {loadingActivity ? (

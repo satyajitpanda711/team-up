@@ -2,9 +2,9 @@ import { connectDB } from "@/lib/db";
 import Project from "@/models/Project";
 import User from "@/models/User";
 import { NextResponse } from "next/server";
+import { Types } from "mongoose";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { Types } from "mongoose";
 
 export async function POST(req: Request, { params }: { params: Promise<{ projectId: string }> }) {
     try {
@@ -18,15 +18,24 @@ export async function POST(req: Request, { params }: { params: Promise<{ project
             return NextResponse.json({ error: "Invalid project ID" }, { status: 400 });
         }
         const body = await req.json();
-        const { teammateEmail, role } = body;
+        const { teammateId } = body;
 
-        if (!teammateEmail) {
-            return NextResponse.json({ error: "Teammate email is required" }, { status: 400 });
+        if (!teammateId) {
+            return NextResponse.json({ error: "Teammate ID is required" }, { status: 400 });
         }
 
         await connectDB();
 
-        const teammate = await User.findOne({ email: teammateEmail });
+        // The teammateId passed from the frontend is usually githubId or _id. We check both safely.
+        let teammate = null;
+        if (Types.ObjectId.isValid(teammateId)) {
+            teammate = await User.findById(teammateId);
+        }
+        
+        if (!teammate) {
+            teammate = await User.findOne({ githubId: teammateId });
+        }
+        
         if (!teammate) {
             return NextResponse.json({ error: "Teammate not found" }, { status: 404 });
         }
@@ -36,24 +45,20 @@ export async function POST(req: Request, { params }: { params: Promise<{ project
             return NextResponse.json({ error: "Project not found" }, { status: 404 });
         }
 
-        // Check if already a member
-        const isMember = project.members.some(
-            (m: any) => m.user.toString() === teammate._id.toString()
+        // Remove teammate from project
+        const initialLength = project.members.length;
+        project.members = project.members.filter(
+            (m: any) => m.user.toString() !== teammate._id.toString()
         );
-        if (isMember) {
-            return NextResponse.json({ error: "User is already a teammate" }, { status: 400 });
-        }
 
-        // Add teammate to project
-        project.members.push({
-            user: teammate._id,
-            role: role || "developer",
-        });
+        if (project.members.length === initialLength) {
+            return NextResponse.json({ error: "User is not a member of this project" }, { status: 400 });
+        }
 
         await project.save();
         return NextResponse.json({ success: true, project });
     } catch (error) {
-        console.error("Error adding teammate:", error);
+        console.error("Error removing teammate:", error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }

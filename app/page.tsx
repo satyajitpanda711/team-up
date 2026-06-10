@@ -76,10 +76,10 @@ function CursorOrb() {
 }
 
 const LINES = [
-  { prompt: "→", text: "Analyzing PR #312 · Refactored auth pipeline…", color: "#00ffa3" },
-  { prompt: "→", text: "Impact: 3 files changed · latency ↓ 41% · 0 conflicts", color: "#60a5fa" },
-  { prompt: "→", text: "Security scan: no critical vulnerabilities found", color: "#a78bfa" },
-  { prompt: "→", text: "Suggested reviewers: @maya, @tariq, @lena", color: "#f59e0b" },
+  { prompt: "→", text: "Connecting to GitHub repository...", color: "#00ffa3" },
+  { prompt: "→", text: "Fetching file tree, commits, issues, and PRs...", color: "#60a5fa" },
+  { prompt: "→", text: "Analyzing codebase architecture via AI models...", color: "#a78bfa" },
+  { prompt: "→", text: "Intelligence Report ready. AskRepo assistant online.", color: "#f59e0b" },
 ];
 
 function TerminalDemo() {
@@ -423,8 +423,8 @@ export default function Page() {
           className="anim-slide-up delay-3 text-white/45 mb-10 leading-relaxed"
           style={{ maxWidth: 560, fontSize: "1.1rem" }}
         >
-          Connect your GitHub repos and get instant AI analysis of commits, pull requests,
-          contributors, and architecture — in plain English.
+          Connect your GitHub repos and get instant AI-generated architecture reports,
+          a built-in code explorer, and a smart assistant that can answer any question about your codebase.
         </p>
 
         {/* CTAs */}
@@ -535,10 +535,10 @@ export default function Page() {
       {/* ── STATS ─────────────────────────────────────────────────────────── */}
       <section className="px-6 py-16 flex justify-center">
         <div className="w-full max-w-6xl grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatPill value="10K+" label="Repos analyzed" icon={<Github className="w-5 h-5" />} />
-          <StatPill value="500K+" label="PRs summarized" icon={<GitPullRequest className="w-5 h-5" />} />
-          <StatPill value="98.4%" label="Accuracy rate" icon={<BarChart3 className="w-5 h-5" />} />
-          <StatPill value="< 1.8s" label="Avg. response" icon={<Zap className="w-5 h-5" />} />
+          <StatPill value="Instant" label="AI responses" icon={<Zap className="w-5 h-5" />} />
+          <StatPill value="1-Click" label="GitHub Ingestion" icon={<Github className="w-5 h-5" />} />
+          <StatPill value="Context" label="Aware Assistant" icon={<Brain className="w-5 h-5" />} />
+          <StatPill value="Team" label="Shared Workspaces" icon={<Users className="w-5 h-5" />} />
         </div>
       </section>
 
@@ -562,38 +562,38 @@ export default function Page() {
           <div className="grid md:grid-cols-3 gap-4">
             <FeatureCard
               icon={<Brain className="w-5 h-5" />}
-              title="Deep Code Understanding"
-              desc="Semantic analysis goes beyond syntax — understands intent, patterns, and architectural decisions across your entire codebase."
+              title="AskRepo Assistant"
+              desc="Chat with your codebase. Our context-aware AI reads your files and answers complex questions instantly using high-speed inference."
               accent="#00ffa3"
             />
             <FeatureCard
-              icon={<GitPullRequest className="w-5 h-5" />}
-              title="PR Intelligence"
-              desc="Auto-summarize PRs, predict merge conflicts, detect breaking changes, and get smart reviewer suggestions instantly."
+              icon={<BarChart3 className="w-5 h-5" />}
+              title="Intelligence Reports"
+              desc="Generate high-level architectural summaries and technical breakdowns of your entire project with a single click."
               accent="#60a5fa"
             />
             <FeatureCard
-              icon={<GitCommit className="w-5 h-5" />}
-              title="Commit Archaeology"
-              desc="Trace why any line of code exists. Understand contribution patterns and identify hotspots across your history."
+              icon={<Code2 className="w-5 h-5" />}
+              title="Built-in Code Explorer"
+              desc="Browse your entire repository tree, view file contents with syntax highlighting, and access history without leaving the app."
               accent="#a78bfa"
             />
             <FeatureCard
-              icon={<Users className="w-5 h-5" />}
-              title="Team Analytics"
-              desc="Visualize velocity, identify bottlenecks, and surface collaboration patterns to make your team more effective."
+              icon={<Github className="w-5 h-5" />}
+              title="Deep GitHub Sync"
+              desc="Seamlessly ingest your file tree, recent commits, pull requests, and issues using our highly optimized, incremental syncing engine."
               accent="#f59e0b"
             />
             <FeatureCard
-              icon={<Shield className="w-5 h-5" />}
-              title="Security Signals"
-              desc="Catch risky patterns, secret exposure, and dependency vulnerabilities before they reach production."
+              icon={<Users className="w-5 h-5" />}
+              title="Shared Workspaces"
+              desc="Invite teammates to your project workspaces so everyone shares the same AI context and developer activity feed."
               accent="#f87171"
             />
             <FeatureCard
               icon={<Lock className="w-5 h-5" />}
-              title="Enterprise Controls"
-              desc="SOC 2 Type II, SSO, audit logs, granular RBAC, and private deployment options for regulated industries."
+              title="Secure by Design"
+              desc="We only request read-only access to your repositories. Your code context is retrieved dynamically and never stored unnecessarily."
               accent="#34d399"
             />
           </div>
@@ -621,10 +621,10 @@ export default function Page() {
             </p>
           </div>
           <div className="md:w-3/5">
-            <Step n="01" title="Connect your GitHub account" desc="OAuth in one click. We request only the minimum scopes needed to read your repositories — nothing more." />
-            <Step n="02" title="Select repositories to analyze" desc="Pick any public or private repo. Our engine indexes commits, PRs, issues, and your full file tree." />
-            <Step n="03" title="Ask anything in plain English" desc={`"What changed in auth last month?" · "Who owns the payment service?" · Any question, instant answer.`} />
-            <Step n="04" title="Get continuous insights" desc="Enable auto-sync and RepoIntel updates in the background — always current, always ready." last />
+            <Step n="01" title="Connect your GitHub account" desc="Authenticate safely with GitHub. We only request read-access to your repos." />
+            <Step n="02" title="Ingest your repository" desc="Select a repo to sync. Our incremental engine fetches your file tree, commits, PRs, and issues." />
+            <Step n="03" title="Generate an Intelligence Report" desc="Get an instant AI-generated breakdown of the project architecture and main components." />
+            <Step n="04" title="AskRepo Anything" desc="Use the built-in AI assistant to ask questions about your codebase, debug issues, or explore the repository." last />
           </div>
         </div>
       </section>
@@ -656,8 +656,8 @@ export default function Page() {
             <br />Start understanding.
           </h2>
           <p className="text-white/40 text-sm mb-10 max-w-md mx-auto leading-relaxed">
-            Join 12,000+ developers who use RepoIntel to understand their codebases
-            faster, ship safer, and onboard in days not weeks.
+            Join other developers who use RepoIntel to understand codebases
+            faster, collaborate with AI, and onboard to new projects in record time.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
@@ -673,7 +673,7 @@ export default function Page() {
             </button>
           </div>
           <div className="mt-8 flex items-center justify-center gap-6 text-xs text-white/25">
-            {["Free forever tier", "No credit card", "SOC 2 compliant", "GDPR ready"].map(t => (
+            {["Lightning Fast AI", "Smart Repo Ingestion", "Secure GitHub OAuth", "Team Workspaces"].map(t => (
               <span key={t} className="flex items-center gap-1.5">
                 <span style={{ color: "#00ffa3" }}>✓</span> {t}
               </span>

@@ -8,6 +8,8 @@ import Link from "next/link";
 import { Sparkles, Fingerprint, Users, Github } from "lucide-react";
 
 import InviteTeammateButton from "./components/InviteTeammateButton";
+import RemoveTeammateButton from "./components/RemoveTeammateButton";
+import ProjectSettingsButton from "./components/ProjectSettingsButton";
 import ProjectTabs from "./components/ProjectTabs";
 import IngestRepoButton from "./components/IngestRepoButton";
 import DeveloperActivity from "./components/DeveloperActivity";
@@ -98,6 +100,7 @@ export default async function ProjectPage({
                 </Button>
               </Link>
               <IngestRepoButton projectId={projectId} repoUrl={project.githubRepoUrl} />
+              <ProjectSettingsButton projectId={projectId} projectName={project.name} />
               <ThemeToggleButton />
             </div>
           </div>
@@ -164,7 +167,15 @@ export default async function ProjectPage({
                         height={32}
                         className="rounded-full border border-border group-hover:border-indigo-500/30 transition-colors"
                       />
-                      <span className="text-sm font-medium">{c.name}</span>
+                      <span className="text-sm font-medium flex-1 truncate">{c.name}</span>
+                      
+                      {session?.user?.email && (
+                        <RemoveTeammateButton 
+                          projectId={projectId} 
+                          teammateId={c.id} 
+                          teammateName={c.name} 
+                        />
+                      )}
                     </li>
                   ))}
                 </ul>

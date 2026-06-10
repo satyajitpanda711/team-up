@@ -56,7 +56,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         >
           {/* Logo */}
           <div className="h-14 flex items-center gap-2.5 px-4 border-b shrink-0">
-            <span className="font-semibold text-sm tracking-tight text-foreground">TeamUp</span>
+            <span className="font-semibold text-sm tracking-tight text-foreground">RepoIntel</span>
           </div>
 
           {/* Nav */}
@@ -104,7 +104,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* Topbar */}
             <header className="h-14 flex items-center gap-3 px-5 border-b bg-background/80 backdrop-blur-md shrink-0">
               <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
-                <span>TeamUp</span>
+                <span>RepoIntel</span>
                 <span>›</span>
                 <span className="text-foreground/80 font-medium">{tab}</span>
               </div>

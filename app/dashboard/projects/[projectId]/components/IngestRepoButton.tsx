@@ -44,8 +44,8 @@ export default function IngestRepoButton({ projectId, repoUrl }: IngestRepoButto
         { id: toastId, duration: 6000 }
       );
       
-      // Dynamic page refresh to load newly ingested data into active tabs
-      router.refresh();
+      // Full page reload to ensure all client-side tabs (Files, Commits, PRs) refetch their data
+      window.location.reload();
     } catch (error: any) {
       console.error("Ingestion failed:", error);
       toast.error(error.message || "Failed to ingest repository. Please check access token.", { id: toastId });
