@@ -22,11 +22,6 @@ import {
     fetchFileContent,
 } from "@/lib/services/github";
 
-// /api/repos/ingest/route.ts
-
-/* ======================
-   TYPES
-====================== */
 
 interface IngestRequestBody {
     projectId: string;
@@ -74,10 +69,6 @@ interface GitHubIssue {
     labels: { name: string }[];
     pull_request?: object;
 }
-
-/* ======================
-   API
-====================== */
 
 export async function POST(req: NextRequest) {
     try {
@@ -270,74 +261,134 @@ export async function POST(req: NextRequest) {
             ".jsx",
             ".md",
             ".json",
+            ".py",
+            ".go",
+            ".rs",
+            ".java",
+            ".html",
+            ".css",
+            ".yaml",
+            ".yml",
+            ".c",
+            ".cpp",
+            ".rb",
+            ".php",
+            ".scss",
+            ".sql",
+            ".sh",
+            ".py"   
         ];
+
+        const languageMap: Record<string, string> = {
+            ".ts": "typescript",
+            ".tsx": "typescriptreact",
+            ".js": "javascript",
+            ".jsx": "javascriptreact",
+            ".md": "markdown",
+            ".json": "json",
+            ".py": "python",
+            ".go": "go",
+            ".rs": "rust",
+            ".java": "java",
+            ".c": "c",
+            ".cpp": "cpp",
+            ".rb": "ruby",
+            ".php": "php",
+            ".html": "html",
+            ".css": "css",
+            ".scss": "scss",
+            ".sql": "sql",
+            ".sh": "shell",
+            ".yml": "yaml",
+            ".yaml": "yaml"
+        };
 
         const MAX_FILE_SIZE = 10000;
 
-        for (const node of tree.tree) {
-            if (
-                node.path.startsWith(".git") ||
-                node.path.includes("node_modules") ||
-                node.path.includes("dist") ||
-                node.path.includes("build")
-            ) {
-                continue;
-            }
+        const existingFilesList = await RepoFile.find({ repository: repository._id })
+            .select("path lastCommitSha _id")
+            .lean();
 
-            remotePaths.add(node.path);
+        const fileMap = new Map(
+            existingFilesList.map((f: any) => [f.path, { _id: f._id, lastCommitSha: f.lastCommitSha }])
+        );
 
-            const existingFile = await RepoFile.findOne({
-                repository: repository._id,
-                path: node.path
-            }).select("lastCommitSha");
+        const BATCH_SIZE = 20;
+        const chunks = [];
+        for (let i = 0; i < tree.tree.length; i += BATCH_SIZE) {
+            chunks.push(tree.tree.slice(i, i + BATCH_SIZE));
+        }
 
-            if (existingFile && existingFile.lastCommitSha === node.sha) {
-                // File hasn't changed, just ensure it's not marked deleted
-                await RepoFile.updateOne(
-                    { _id: existingFile._id },
-                    { $set: { deletedAt: null } }
-                );
-                continue;
-            }
+        for (const chunk of chunks) {
+            await Promise.all(
+                chunk.map(async (node) => {
+                    if (
+                        node.path.startsWith(".git") ||
+                        node.path.includes("node_modules") ||
+                        node.path.includes("dist") ||
+                        node.path.includes("build")
+                    ) {
+                        return;
+                    }
 
-            const shouldStoreContent =
-                node.type === "blob" &&
-                importantExtensions.some((ext) =>
-                    node.path.endsWith(ext)
-                );
+                    remotePaths.add(node.path);
 
-            let content = "";
+                    const existingFile = fileMap.get(node.path);
 
-            if (shouldStoreContent) {
-                const fetchedContent = await fetchFileContent(
-                    owner,
-                    repoName,
-                    node.path,
-                    user.githubAccessToken
-                );
+                    if (existingFile && existingFile.lastCommitSha === node.sha) {
+                        await RepoFile.updateOne(
+                            { _id: existingFile._id },
+                            { $set: { deletedAt: null } }
+                        );
+                        return;
+                    }
 
-                if (fetchedContent) {
-                    content = fetchedContent.slice(0, MAX_FILE_SIZE);
-                }
-            }
+                    const shouldStoreContent =
+                        node.type === "blob" &&
+                        importantExtensions.some((ext) => node.path.endsWith(ext));
 
-            await RepoFile.findOneAndUpdate(
-                {
-                    repository: repository._id,
-                    path: node.path,
-                },
-                {
-                    repository: repository._id,
-                    path: node.path,
-                    type: node.type === "tree" ? "dir" : "file",
-                    size: node.size ?? 0,
-                    lastCommitSha: node.sha,
-                    content,
-                    deletedAt: null,
-                },
-                {
-                    upsert: true,
-                }
+                    let content = "";
+
+                    if (shouldStoreContent) {
+                        const fetchedContent = await fetchFileContent(
+                            owner,
+                            repoName,
+                            node.path,
+                            user.githubAccessToken
+                        );
+
+                        if (fetchedContent) {
+                            content = fetchedContent.slice(0, MAX_FILE_SIZE);
+                        }
+                    }
+
+                    const depth = node.path.split("/").length;
+
+                    const extMatch = node.path.match(/\.[^.]+$/);
+                    const ext = extMatch ? extMatch[0].toLowerCase() : "";
+                    const language = languageMap[ext] || "plaintext";
+
+                    await RepoFile.findOneAndUpdate(
+                        {
+                            repository: repository._id,
+                            path: node.path,
+                        },
+                        {
+                            repository: repository._id,
+                            path: node.path,
+                            type: node.type === "tree" ? "dir" : "file",
+                            size: node.size ?? 0,
+                            lastCommitSha: node.sha,
+                            content,
+                            language: node.type === "blob" ? language : undefined,
+                            depth,
+                            deletedAt: null,
+                        },
+                        {
+                            upsert: true,
+                        }
+                    );
+                })
             );
         }
 

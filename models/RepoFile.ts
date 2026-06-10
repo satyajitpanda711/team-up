@@ -11,8 +11,9 @@ const RepoFileSchema = new Schema(
 
     path: String,        // src/utils/auth.ts
     content: String,     // raw code
-    language: String,    // ts, js, py
+    language: String,    // typescript, javascript, python, etc.
     size: Number,
+    depth: Number,       // Directory depth for architectural mapping
 
     lastCommitSha: String,
   },

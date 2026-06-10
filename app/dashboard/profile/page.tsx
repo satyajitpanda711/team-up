@@ -6,7 +6,7 @@ import User from "@/models/User";
 import ProfileClient from "@/app/dashboard/profile/ProfileClient";
 
 export const metadata = {
-  title: "Profile | TeamUp",
+  title: "Profile",
 };
 
 export default async function ProfilePage() {

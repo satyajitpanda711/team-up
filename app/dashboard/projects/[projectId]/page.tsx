@@ -19,6 +19,24 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import ThemeToggleButton from "@/components/theme-button";
 
+import { Metadata } from "next";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ projectId: string }>;
+}): Promise<Metadata> {
+  const { projectId } = await params;
+  if (!Types.ObjectId.isValid(projectId)) return { title: "Invalid Project" };
+
+  await connectDB();
+  const project = await Project.findById(projectId).lean();
+
+  return {
+    title: project ? project.name : "Project Not Found",
+  };
+}
+
 export default async function ProjectPage({
   params,
 }: {

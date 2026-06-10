@@ -13,6 +13,11 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FolderGit2, Plus, Github, Users, ArrowRight, Activity, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "My Projects",
+};
 
 export default async function Page() {
   const session = (await getServerSession(authOptions)) as any;
