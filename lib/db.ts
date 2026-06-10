@@ -5,3 +5,6 @@ export async function connectDB() {
 
   return mongoose.connect(process.env.MONGODB_URI!);
 }
+
+
+// this is db.ts
