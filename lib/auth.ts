@@ -24,7 +24,7 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile } : { user: any; account: any; profile?: any }) {
       await connectDB();
 
-      let dbUser = profile?.id ? await User.findOne({ githubId: profile.id }) : null;
+      let dbUser = profile?.id ? await User.findOne({ githubId: profile.id.toString() }) : null;
       if (!dbUser) {
         dbUser = await User.findOne({ email: user.email });
       }
@@ -33,7 +33,7 @@ export const authOptions: NextAuthOptions = {
         dbUser.name = user.name;
         dbUser.email = user.email;
         dbUser.image = user.image;
-        dbUser.githubId = profile?.id || dbUser.githubId;
+        dbUser.githubId = profile?.id?.toString() || dbUser.githubId;
         dbUser.githubAccessToken = account?.access_token || dbUser.githubAccessToken;
         await dbUser.save();
       } else {
@@ -41,7 +41,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           email: user.email,
           image: user.image,
-          githubId: profile?.id,
+          githubId: profile?.id?.toString(),
           githubAccessToken: account?.access_token,
         });
       }

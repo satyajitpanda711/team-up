@@ -1,0 +1,7 @@
+**RepoIntel — AI-Powered Repository Intelligence Platform**
+- Designed and developed a collaborative developer workspace using Next.js 16, React 19, TypeScript, and Tailwind CSS to facilitate AI-driven code understanding and project management.
+- Implemented "AskRepo AI" using Groq and LLaMA 3.3 70B, leveraging Retrieval-Augmented Generation (RAG) to allow users to query codebases in natural language with contextual awareness of commits and documentation.
+- Engineered real-time, project-specific team chat rooms using an Express server and Socket.IO, persisting message histories and collaborative data in MongoDB.
+- Integrated GitHub OAuth (via NextAuth) and GitHub API for one-click repository ingestion, automatically synchronizing repository structures, commits, pull requests, and issues.
+- Built automated Intelligence Reports to analyze repository metadata, generating detailed architectural overviews, tech stack summaries, and risk/onboarding insights.
+- Developed a modern, responsive Project Dashboard and Repository Explorer utilizing ShadCN UI and Zustand for state management, providing a unified view of repository activities and team collaboration.

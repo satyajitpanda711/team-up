@@ -1,0 +1,280 @@
+\documentclass[10pt, letterpaper]{article}
+
+% Packages:
+\usepackage[
+    ignoreheadfoot,
+    top=0.8cm,
+    bottom=0.8cm,
+    left=0.8cm,
+    right=0.8cm,
+    footskip=1.0cm,
+]{geometry}
+\usepackage{titlesec}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage[dvipsnames]{xcolor}
+\definecolor{primaryColor}{RGB}{0, 79, 144}
+\usepackage{enumitem}
+\usepackage{fontawesome5}
+\usepackage{amsmath}
+\usepackage[
+    pdftitle={Satyajit Panda's CV},
+    pdfauthor={Satyajit Panda},
+    pdfcreator={LaTeX with RenderCV},
+    colorlinks=true,
+    urlcolor=primaryColor
+]{hyperref}
+\usepackage[pscoord]{eso-pic}
+\usepackage{calc}
+\usepackage{bookmark}
+\usepackage{lastpage}
+\usepackage{changepage}
+\usepackage{paracol}
+\usepackage{ifthen}
+\usepackage{needspace}
+\usepackage{iftex}
+
+% Ensure machine-readable PDF:
+\ifPDFTeX
+    \input{glyphtounicode}
+    \pdfgentounicode=1
+    \usepackage[utf8]{inputenc}
+    \usepackage{lmodern}
+\fi
+
+% Settings:
+\AtBeginEnvironment{adjustwidth}{\partopsep0pt}
+\pagestyle{empty}
+\setcounter{secnumdepth}{0}
+\setlength{\parindent}{0pt}
+\setlength{\topskip}{0pt}
+\setlength{\columnsep}{0cm}
+\makeatletter
+\let\ps@customFooterStyle\ps@plain
+\patchcmd{\ps@customFooterStyle}{\thepage}{
+    \color{gray}\textit{\small }
+}{}{}
+\makeatother
+\pagestyle{customFooterStyle}
+
+\titleformat{\section}{\needspace{4\baselineskip}\bfseries\large}{}{0pt}{}[\vspace{1pt}\titlerule]
+\titlespacing{\section}{-1pt}{0.3cm}{0.2cm}
+
+\renewcommand\labelitemi{$\circ$}
+\newenvironment{highlights}{
+    \begin{itemize}[
+        topsep=0.10cm,
+        parsep=0.10cm,
+        partopsep=0pt,
+        itemsep=0pt,
+        leftmargin=0.4cm + 10pt
+    ]
+}{
+    \end{itemize}
+}
+\newenvironment{onecolentry}{
+    \begin{adjustwidth}{
+        0.2cm + 0.00001cm
+    }{
+        0.2cm + 0.00001cm
+    }
+}{
+    \end{adjustwidth}
+}
+\newenvironment{twocolentry}[2][]{
+    \onecolentry
+    \def\secondColumn{#2}
+    \setcolumnwidth{\fill, 4.5cm}
+    \begin{paracol}{2}
+}{
+    \switchcolumn \raggedleft \secondColumn
+    \end{paracol}
+    \endonecolentry
+}
+\newenvironment{header}{
+    \setlength{\topsep}{0pt}\par\kern\topsep\centering\linespread{1.5}
+}{
+    \par\kern\topsep
+}
+\newcommand{\placelastupdatedtext}{
+  \AddToShipoutPictureFG*{
+    \put(
+        \LenToUnit{\paperwidth-2cm-0.2cm+0.05cm},
+        \LenToUnit{\paperheight-1.0cm}
+    ){\vtop{{\null}\makebox[0pt][c]{
+        \small\color{gray}\textit{}\hspace{\widthof{}}
+    }}}
+  }
+}
+\let\hrefWithoutArrow\href
+\renewcommand{\href}[2]{\hrefWithoutArrow{#1}{\ifthenelse{\equal{#2}{}}{ }{#2 \raisebox{.15ex}{\footnotesize \faExternalLink*}}}}
+
+\begin{document}
+    \newcommand{\AND}{\unskip
+        \cleaders\copy\ANDbox\hskip\wd\ANDbox
+        \ignorespaces
+    }
+    \newsavebox\ANDbox
+    \sbox\ANDbox{}
+
+    \placelastupdatedtext
+
+    \begin{header}
+    \textbf{\fontsize{24pt}{24pt}\selectfont Satyajit Panda}
+
+    \vspace{0.3cm}
+
+    \normalsize
+    \mbox{{\color{black}\footnotesize\faMapMarker*}\hspace*{0.13cm}Kolkata, India}%
+    \kern 0.25cm%
+    \AND%
+    \kern 0.25cm%
+    \mbox{\hrefWithoutArrow{mailto:satyajitpanda711@gmail.com}{\color{black}{\footnotesize\faEnvelope[regular]}\hspace*{0.13cm}satyajitpanda711@gmail.com}}%
+    \kern 0.25cm%
+    \AND%
+    \kern 0.25cm%
+    \mbox{\hrefWithoutArrow{tel:+91 9830039992}{\color{black}{\footnotesize\faPhone*}\hspace*{0.13cm}+91 98300 39992}}%
+    \kern 0.25cm%
+    \AND%
+    \kern 0.25cm%
+    \mbox{\hrefWithoutArrow{https://satyajit-pf.vercel.app/}{\color{black}{\footnotesize\faLink}\hspace*{0.13cm}Portfolio}}%
+    \kern 0.25cm%
+    \AND%
+    \kern 0.25cm%
+    \mbox{\hrefWithoutArrow{https://www.linkedin.com/in/satyajit-panda7155}{\color{black}{\footnotesize\faLinkedinIn}\hspace*{0.13cm}Satyajit Panda}}%
+    \kern 0.25cm%
+    \AND%
+    \kern 0.25cm%
+    \mbox{\hrefWithoutArrow{https://github.com/satyajitpanda711}{\color{black}{\footnotesize\faGithub}\hspace*{0.13cm}Satyajit Panda}}%
+    \end{header}
+   
+    \vspace{0.3cm}
+
+    \section{Education}
+    \begin{twocolentry}{
+        \textit{Sept 2023 -- June 2027}
+    }
+        \textbf{Vellore Institute of Technology, Andhra Pradesh}\\
+        \textit{Bachelor of Technology in Computer Science and Engineering}
+    \end{twocolentry}
+
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \begin{highlights}
+            \item CGPA: 9.01/10
+            \item \textbf{Relevant Coursework:} Data Structures \& Algorithms, Database Management Systems, Operating Systems, Computer Networks
+        \end{highlights}
+    \end{onecolentry}
+
+    \begin{twocolentry}{
+        \textit{July 2021 -- March 2023}
+    }
+        \textbf{Range School, Baleshwar}\\
+        \textit{Senior Secondary Schooling (Science: Physics, Chemistry, Mathematics)}
+    \end{twocolentry}
+
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \begin{highlights}
+            \item Class XII Percentage: 89\%
+            \item \textbf{Relevant Coursework:} Python, MySQL
+        \end{highlights}
+    \end{onecolentry}
+
+    \begin{twocolentry}{
+        \textit{April 2019 -- April 2021}
+    }
+        \textbf{Devaki Memorial School, Kolkata}\\
+        \textit{Secondary Schooling}
+    \end{twocolentry}
+
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \begin{highlights}
+            \item Class X Percentage: 92.16\%
+            \item \textbf{Relevant Coursework:} Java
+        \end{highlights}
+    \end{onecolentry}
+
+    \section{Technical Skills}
+    \begin{onecolentry}
+        \textbf{Languages:} Java, Python, JavaScript, TypeScript \end{onecolentry}
+    \begin{onecolentry}
+        \textbf{Frameworks/Libraries:} Node.js, Express.js, React.js, Next.js, Tailwind CSS \end{onecolentry}
+    \begin{onecolentry}
+        \textbf{Databases:} MySQL, MongoDB \end{onecolentry}
+    \begin{onecolentry}
+        \textbf{Other Tools:} Git, GitHub, Socket.IO \end{onecolentry}
+
+    \section{Projects}
+
+    \begin{twocolentry}{
+        \textit{\href{https://github.com/satyajitpanda711/team-up}{GitHub}}
+    }
+        \textbf{RepoIntel — AI-Powered Repository Intelligence} \\
+        \textit{Next.js 16, TypeScript, Express, MongoDB, Socket.IO, LLaMA 3.3}
+    \end{twocolentry}
+
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \begin{highlights}
+            \item Designed a collaborative workspace using \textbf{Next.js 16} and \textbf{Tailwind CSS} to facilitate AI-driven code understanding.
+            \item Implemented ``AskRepo AI'' using \textbf{Groq} and \textbf{LLaMA 3.3}, leveraging RAG to allow natural language codebase queries.
+            \item Engineered real-time project chat using \textbf{Express} and \textbf{Socket.IO}, with persistent message histories in \textbf{MongoDB}.
+            \item Integrated \textbf{GitHub OAuth} for 1-click repository ingestion, synchronizing structures, commits, PRs, and issues.
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.2cm}
+    \begin{twocolentry}{
+        \textit{\href{https://github.com/satyajitpanda711/hostel-mgt-sys}{GitHub}}
+    }
+        \textbf{Hostel Management System} \\
+        \textit{Next.js, Node.js, MongoDB}
+    \end{twocolentry}
+
+    \vspace{0.10cm}
+    \begin{onecolentry}
+        \begin{highlights}
+            \item Built a \textbf{full-stack web app} to manage hostel operations (room allocation, fee tracking, complaints) 
+            \item Designed interactive dashboards and implemented \textbf{JWT-based authentication} for security. 
+            \item Optimized UI for performance and responsiveness, improving student query resolution significantly.
+        \end{highlights}
+    \end{onecolentry}
+
+    \vspace{0.2cm}
+   \begin{twocolentry}{
+    \textit{\href{https://github.com/satyajitpanda711/student-admission-and-management-system}{GitHub}}
+}
+    \textbf{Student Admission and Management System} \\
+    \textit{Java, MySQL}
+\end{twocolentry}
+
+\vspace{0.10cm}
+\begin{onecolentry}
+    \begin{highlights}
+        \item Developed a menu-driven Java application to automate student admissions and record management for university administration.
+        \item Automated assignment of unique university registration numbers, academic email addresses, and secure passwords for each admitted student.
+        \item Designed a robust MySQL schema for secure management of CSE/ECE student data across campuses.
+        \item Improved accuracy and efficiency of student onboarding and reduced manual data entry.
+    \end{highlights}
+\end{onecolentry}
+
+    
+    \section{Achievements and Certifications}
+\begin{twocolentry}{
+    \textit{GeeksForGeeks Student Chapter, VIT-AP} \\
+    \textit{Nov 2024}
+}
+    \textbf{Runner-Up – HacktoberFest Hackathon} \hfill
+    \href{https://credsverse.com/credentials/71031397-5a55-4076-897d-997b9deaa239}{View Certificate}
+    \vspace{0.10cm} 
+    \begin{highlights}
+        \item Achieved runner-up position among \textbf{70+ participants} by collaborating in a \textbf{4-member team} to build the UI for the \textit{CLEAN} project.
+        \item Developed the \textbf{frontend interface} using JavaScript, Tailwind CSS, and HTML, ensuring mobile-first responsiveness and a seamless user experience.  
+    \end{highlights} 
+\end{twocolentry}
+
+ 
+
+\end{document}
